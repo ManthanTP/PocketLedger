@@ -39,7 +39,7 @@ export const Settings: React.FC = () => {
     transactions
   } = useFinanceStore();
 
-  const { showToast } = useNotificationStore();
+  const { showToast, showDialog } = useNotificationStore();
 
   const [activePanel, setActivePanel] = useState<SubPanel>('none');
 
@@ -132,7 +132,7 @@ export const Settings: React.FC = () => {
           return;
         }
 
-        if (window.confirm("WARNING: Restoring this backup will completely overwrite your current database. This action cannot be undone. Are you sure you want to proceed?")) {
+        const proceedWithRestore = async () => {
           const dbInstance = await import('../db/db').then(m => m.db);
           
           await useFinanceStore.getState().wipeAllData();
@@ -182,7 +182,16 @@ export const Settings: React.FC = () => {
           await useFinanceStore.getState().fetchData();
           showToast("Database backup successfully restored", "success");
           setActivePanel('none');
-        }
+        };
+
+        showDialog({
+          title: "Restore Backup?",
+          message: "WARNING: Restoring this backup will completely overwrite your current database. This action cannot be undone. Are you sure you want to proceed?",
+          type: "confirm",
+          confirmLabel: "Restore",
+          cancelLabel: "Cancel",
+          onConfirm: proceedWithRestore
+        });
       } catch (err) {
         console.error(err);
         showToast("Failed to parse backup JSON file.", "error");
@@ -237,12 +246,19 @@ export const Settings: React.FC = () => {
     showToast("Security PIN lock disabled", "info");
   };
 
-  const handleWipeData = async () => {
-    if (window.confirm("CRITICAL WARNING: This will permanently delete ALL accounts, transactions, custom categories, and security settings on this device. This cannot be undone. Are you absolutely sure?")) {
-      await wipeAllData();
-      setActivePanel('none');
-      showToast("All application database records wiped", "success");
-    }
+  const handleWipeData = () => {
+    showDialog({
+      title: "Wipe All Data?",
+      message: "CRITICAL WARNING: This will permanently delete ALL accounts, transactions, custom categories, and security settings on this device. This cannot be undone. Are you absolutely sure?",
+      type: "confirm",
+      confirmLabel: "Wipe Data",
+      cancelLabel: "Cancel",
+      onConfirm: async () => {
+        await wipeAllData();
+        setActivePanel('none');
+        showToast("All application database records wiped", "success");
+      }
+    });
   };
 
   const handleSaveReminder = (e: React.FormEvent) => {

@@ -20,7 +20,7 @@ export const AccountDetail: React.FC = () => {
     hideBalance
   } = useFinanceStore();
 
-  const { showToast } = useNotificationStore();
+  const { showToast, showDialog } = useNotificationStore();
 
   const [search, setSearch] = useState<string>('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
@@ -61,12 +61,19 @@ export const AccountDetail: React.FC = () => {
     showToast(`Account updated: "${editName.trim()}"`, "success");
   };
 
-  const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete this account? WARNING: This will permanently delete the account "${selectedAccount.name}" and ALL its transaction history. This cannot be undone.`)) {
-      await deleteAccount(selectedAccount.id);
-      setIsEditOpen(false);
-      showToast(`Account "${selectedAccount.name}" deleted`, "success");
-    }
+  const handleDelete = () => {
+    showDialog({
+      title: "Delete Account?",
+      message: `Are you sure you want to delete this account? WARNING: This will permanently delete the account "${selectedAccount.name}" and ALL its transaction history. This cannot be undone.`,
+      type: "confirm",
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      onConfirm: async () => {
+        await deleteAccount(selectedAccount.id);
+        setIsEditOpen(false);
+        showToast(`Account "${selectedAccount.name}" deleted`, "success");
+      }
+    });
   };
 
   // Filter transactions for this account

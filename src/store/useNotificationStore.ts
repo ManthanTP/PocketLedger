@@ -30,10 +30,21 @@ export interface AndroidSimNotification {
   }>;
 }
 
+export interface DialogConfig {
+  title: string;
+  message: string;
+  type: 'confirm' | 'alert';
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel?: () => void;
+}
+
 interface NotificationState {
   toasts: ToastItem[];
   banners: BannerItem[];
   simulatedNotifications: AndroidSimNotification[];
+  activeDialog: DialogConfig | null;
   
   // Toast Actions
   showToast: (
@@ -59,12 +70,17 @@ interface NotificationState {
   // Simulated Android Notifications
   triggerAndroidNotification: (notification: AndroidSimNotification) => void;
   dismissAndroidNotification: (id: string) => void;
+
+  // Dialog Actions
+  showDialog: (config: DialogConfig) => void;
+  closeDialog: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   toasts: [],
   banners: [],
   simulatedNotifications: [],
+  activeDialog: null,
 
   showToast: (message, type = 'success', actionLabel, onActionClick, persistent = false) => {
     const id = Math.random().toString(36).substring(7);
@@ -145,4 +161,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     set((state) => ({
       simulatedNotifications: state.simulatedNotifications.filter((n) => n.id !== id),
     })),
+
+  showDialog: (config) => set({ activeDialog: config }),
+  closeDialog: () => set({ activeDialog: null }),
 }));

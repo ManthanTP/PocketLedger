@@ -18,7 +18,7 @@ export const AddEntryModal: React.FC = () => {
     currency
   } = useFinanceStore();
 
-  const { showToast } = useNotificationStore();
+  const { showToast, showDialog } = useNotificationStore();
 
   const [activeTab, setActiveTab] = useState<'income' | 'expense' | 'transfer'>('expense');
   const [amount, setAmount] = useState<string>('');
@@ -205,18 +205,25 @@ export const AddEntryModal: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!selectedTransaction) return;
-    if (window.confirm("Are you sure you want to delete this transaction?")) {
-      try {
-        await deleteTransaction(selectedTransaction.id);
-        closeAddModal();
-        showToast("Transaction removed from ledger", "success");
-      } catch (err) {
-        console.error(err);
-        showToast("Error deleting transaction.", "error");
+    showDialog({
+      title: "Delete Transaction?",
+      message: "Are you sure you want to delete this transaction from your ledger?",
+      type: "confirm",
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      onConfirm: async () => {
+        try {
+          await deleteTransaction(selectedTransaction.id);
+          closeAddModal();
+          showToast("Transaction removed from ledger", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Error deleting transaction.", "error");
+        }
       }
-    }
+    });
   };
 
   // Touch Swipe Handlers for Sheet Dismissal

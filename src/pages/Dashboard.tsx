@@ -527,20 +527,20 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* List of active budgets or fallback */}
-          {Object.keys(budgets).length > 0 && pieChartData.length > 0 ? (
+          {Object.keys(budgets).some(key => budgets[key] > 0) ? (
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
-              {pieChartData
-                .filter((cat) => budgets[cat.name] > 0)
+              {Object.keys(budgets)
+                .filter((catName) => budgets[catName] > 0)
                 .slice(0, 2)
-                .map((cat) => {
-                  const limit = budgets[cat.name];
-                  const spent = cat.value;
+                .map((catName) => {
+                  const limit = budgets[catName];
+                  const spent = categoryDataMap[catName] || 0;
                   const pct = Math.min(100, (spent / limit) * 100);
                   const isOver = spent > limit;
                   return (
-                    <div key={cat.name} className="space-y-1">
+                    <div key={catName} className="space-y-1">
                       <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-text-secondary">{cat.name}</span>
+                        <span className="font-bold text-text-secondary">{catName}</span>
                         <span className="font-bold text-text-primary">
                           {formatAmount(spent)} / <span className="text-text-subtle">{formatAmount(limit)}</span>
                         </span>
@@ -556,11 +556,6 @@ export const Dashboard: React.FC = () => {
                     </div>
                   );
                 })}
-              {pieChartData.filter((cat) => budgets[cat.name] > 0).length === 0 && (
-                <div className="h-24 flex flex-col items-center justify-center text-center">
-                  <p className="text-[10px] text-text-subtle font-medium leading-tight">No active spending in budgeted categories yet.</p>
-                </div>
-              )}
             </div>
           ) : (
             <div className="h-24 flex flex-col items-center justify-center text-center space-y-1.5">

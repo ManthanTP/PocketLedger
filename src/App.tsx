@@ -5,6 +5,7 @@ import { PINLock } from './components/PINLock';
 import { BottomNav } from './components/BottomNav';
 import { AddEntryModal } from './components/AddEntryModal';
 import { ToastContainer, AndroidNotificationShade } from './components/NotificationManager';
+import { useNotificationStore } from './store/useNotificationStore';
 import { AppIconFull } from './components/AppIcon';
 
 // Pages
@@ -26,6 +27,8 @@ function App() {
     isLocked,
     activeTab
   } = useFinanceStore();
+
+  const { activeDialog, closeDialog } = useNotificationStore();
 
   const [showSplash, setShowSplash] = useState(true);
   const [splashFade, setSplashFade] = useState(false);
@@ -147,6 +150,50 @@ function App() {
       <BottomNav />
       <ToastContainer />
       <AndroidNotificationShade />
+
+      {/* Custom Dialog Modal Overlay */}
+      {activeDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity duration-300">
+          <div 
+            className="w-full max-w-sm bg-bg-surface border border-border-custom rounded-3xl p-6 space-y-6 glass-panel animate-slide-up mx-4 text-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dialog-title"
+          >
+            <div className="space-y-2">
+              <h2 id="dialog-title" className="text-base font-bold text-text-primary font-display">
+                {activeDialog.title}
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed font-body">
+                {activeDialog.message}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center space-x-3.5 pt-2">
+              {activeDialog.type === 'confirm' && (
+                <button
+                  onClick={() => {
+                    if (activeDialog.onCancel) activeDialog.onCancel();
+                    closeDialog();
+                  }}
+                  className="flex-1 py-2.5 rounded-xl border border-border-custom hover:bg-white/5 text-text-secondary font-bold text-xs cursor-pointer transition duration-150"
+                >
+                  {activeDialog.cancelLabel || 'Cancel'}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  activeDialog.onConfirm();
+                  closeDialog();
+                }}
+                className="flex-1 py-2.5 bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold rounded-xl text-xs shadow-md transition duration-150 cursor-pointer"
+              >
+                {activeDialog.confirmLabel || (activeDialog.type === 'confirm' ? 'Confirm' : 'OK')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

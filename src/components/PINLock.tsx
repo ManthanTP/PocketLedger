@@ -13,7 +13,7 @@ export const PINLock: React.FC = () => {
     wipeAllData
   } = useFinanceStore();
 
-  const { showToast } = useNotificationStore();
+  const { showToast, showDialog } = useNotificationStore();
 
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +60,17 @@ export const PINLock: React.FC = () => {
   };
 
   const handleBiometricClick = () => {
-    const confirmation = window.confirm("Simulate Biometric Fingerprint Unlock?");
-    if (confirmation) {
-      useFinanceStore.setState({ isLocked: false });
-      showToast("Biometric verification verified", "success");
-    }
+    showDialog({
+      title: "Biometric Verification",
+      message: "Simulate Biometric Fingerprint Unlock?",
+      type: "confirm",
+      confirmLabel: "Verify",
+      cancelLabel: "Cancel",
+      onConfirm: () => {
+        useFinanceStore.setState({ isLocked: false });
+        showToast("Biometric verification verified", "success");
+      }
+    });
   };
 
   const handleRecoverySubmit = (e: React.FormEvent) => {

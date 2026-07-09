@@ -3,9 +3,11 @@ import { useFinanceStore } from '../store/useFinanceStore';
 import { Wallet, ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
 import type { Account } from '../db/db';
 import { AppIconFull } from './AppIcon';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 export const Onboarding: React.FC = () => {
   const { accounts, addAccount, setSecurityPIN } = useFinanceStore();
+  const { showDialog } = useNotificationStore();
   const [slide, setSlide] = useState<number>(0);
 
   // Account creation form
@@ -31,7 +33,12 @@ export const Onboarding: React.FC = () => {
       setSlide(1);
     } else if (slide === 1) {
       if (!accName.trim()) {
-        alert("Please enter a valid account name.");
+        showDialog({
+          title: "Invalid Account Name",
+          message: "Please enter a valid name for your first account.",
+          type: "alert",
+          onConfirm: () => {}
+        });
         return;
       }
       setSlide(2);
