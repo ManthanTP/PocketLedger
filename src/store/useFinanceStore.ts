@@ -41,6 +41,7 @@ interface FinanceState {
   theme: 'light' | 'dark' | 'system';
   currency: string;
   pinHash: string | null; // MD5/SHA or simple hash (we will store simple string hash)
+  pinLength: number;
   isLocked: boolean;
   securityQuestion: string | null;
   securityAnswer: string | null;
@@ -49,8 +50,8 @@ interface FinanceState {
   budgets: { [category: string]: number };
   reminders: ReminderItem[];
   goals: SavingsGoal[];
-  settingsActivePanel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals';
-  setSettingsActivePanel: (panel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals') => void;
+  settingsActivePanel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide';
+  setSettingsActivePanel: (panel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide') => void;
 
   // Actions
   init: () => Promise<void>;
@@ -121,12 +122,19 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   theme: (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system',
   currency: localStorage.getItem('currency') || '₹',
   pinHash: localStorage.getItem('pinHash') || null,
+  pinLength: parseInt(localStorage.getItem('pinLength') || '4', 10),
   isLocked: !!localStorage.getItem('pinHash'), // lock if PIN is set
   securityQuestion: localStorage.getItem('securityQuestion') || null,
   securityAnswer: localStorage.getItem('securityAnswer') || null,
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
-  budgets: JSON.parse(localStorage.getItem('budgets') || '{}'),
+  budgets: (() => {
+    const stored = localStorage.getItem('budgets');
+    if (stored) return JSON.parse(stored);
+    const defaults = { Entertainment: 1000 };
+    localStorage.setItem('budgets', JSON.stringify(defaults));
+    return defaults;
+  })(),
   reminders: (() => {
     const stored = localStorage.getItem('reminders');
     if (stored) return JSON.parse(stored);
@@ -217,6 +225,25 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
       for (const cat of defaultCategories) {
         await db.saveCategory(cat);
+      }
+    }
+
+    // Seed default Entertainment transaction of 920 if empty for demo
+    const dbAccounts = await db.getAccounts();
+    if (dbAccounts.length > 0) {
+      const dbTxs = await db.getTransactions();
+      if (dbTxs.length === 0) {
+        const cashAcc = dbAccounts[0];
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        await get().addTransaction({
+          accountId: cashAcc.id,
+          type: 'expense',
+          amount: 920,
+          category: 'Entertainment',
+          date: dateStr,
+          notes: 'Movies & Drinks'
+        });
       }
     }
 
@@ -442,11 +469,13 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     const ansHash = hashString(answer.trim().toLowerCase());
 
     localStorage.setItem('pinHash', hash);
+    localStorage.setItem('pinLength', pin.length.toString());
     localStorage.setItem('securityQuestion', question);
     localStorage.setItem('securityAnswer', ansHash);
 
     set({
       pinHash: hash,
+      pinLength: pin.length,
       securityQuestion: question,
       securityAnswer: ansHash,
       isLocked: false,
@@ -455,11 +484,13 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   disablePIN: () => {
     localStorage.removeItem('pinHash');
+    localStorage.removeItem('pinLength');
     localStorage.removeItem('securityQuestion');
     localStorage.removeItem('securityAnswer');
 
     set({
       pinHash: null,
+      pinLength: 4,
       securityQuestion: null,
       securityAnswer: null,
       isLocked: false,

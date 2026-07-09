@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 
-type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals';
+type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide';
 
 export const Settings: React.FC = () => {
   const {
@@ -43,7 +43,7 @@ export const Settings: React.FC = () => {
 
   const { showToast, showDialog } = useNotificationStore();
 
-  const activePanel = settingsActivePanel;
+  const activePanel: SubPanel = settingsActivePanel;
   const setActivePanel = setSettingsActivePanel;
 
   // Categories states
@@ -401,6 +401,7 @@ export const Settings: React.FC = () => {
               {activePanel === 'budgets' && 'Monthly Budgets'}
               {activePanel === 'reminders' && 'Notification Reminders'}
               {activePanel === 'goals' && 'Savings Targets'}
+              {activePanel === 'guide' && 'User & Feature Guide'}
             </h1>
           </div>
           <div className="w-10 h-10" />
@@ -551,6 +552,23 @@ export const Settings: React.FC = () => {
                 <div>
                   <span className="text-xs font-bold text-text-primary block font-display">Visual Theme</span>
                   <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Selected: {theme.toUpperCase()}</span>
+                </div>
+              </div>
+            </button>
+
+            {/* User Guide Option */}
+            <button
+              id="settings-menu-guide"
+              onClick={() => setActivePanel('guide')}
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 bg-accent-violet/10 text-accent-violet rounded-xl" aria-hidden="true">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-primary block font-display">User & Feature Guide</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Step-by-step instructions for every feature</span>
                 </div>
               </div>
             </button>
@@ -1252,6 +1270,78 @@ export const Settings: React.FC = () => {
                       {t.toUpperCase()}
                     </button>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* 6. Sub-panel Guide */}
+            {activePanel === 'guide' && (
+              <section id="settings-guide-panel" aria-labelledby="settings-title" className="bento-card text-left space-y-4">
+                <div className="space-y-1">
+                  <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider font-body">Pocket Ledger User Guide</h2>
+                  <p className="text-[10px] text-text-subtle font-body">Quick steps to master all core personal finance features</p>
+                </div>
+                
+                <div className="space-y-3.5 max-h-[480px] overflow-y-auto no-scrollbar pr-1 divide-y divide-border-custom">
+                  <div className="space-y-1.5 pt-1">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">1</span>
+                      <span>Adding Transactions</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Tap the floating <strong className="text-text-primary">+</strong> button in the bottom navigation bar on any page. Select <strong>Income</strong>, <strong>Expense</strong>, or <strong>Transfer</strong>, input your amount, select the account/category, and tap <strong>Save</strong>.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-3.5">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">2</span>
+                      <span>Managing Wallets</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Navigate to the <strong>Accounts</strong> tab. Click <strong>Add Account</strong> to create custom wallets (e.g. Cash, HDFC Savings, Credit Card). You can tap any wallet to view its full transaction history, edit its details, or delete it.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-3.5">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">3</span>
+                      <span>Cash Flow & Analytics</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Use the <strong>Reports</strong> tab or the interactive charts on the Dashboard. Toggle between <strong>Cash Flow Trend</strong> (Bar Chart) and <strong>Expense Breakdown</strong> (Pie Chart + legends) to review category percentages.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-3.5">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">4</span>
+                      <span>Monthly Budgets & Alerts</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Configure spending limits in <strong>Settings &gt; Monthly Budgets</strong>. If category outflows reach <strong>90% or more</strong> of your set budget limit, an alert banner will appear at the top of your Dashboard with an <strong>Adjust limits</strong> link.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-3.5">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">5</span>
+                      <span>Notification Reminders</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Schedule recurring notifications in <strong>Settings &gt; Notification Reminders</strong>. Tap the Bell icon on the Dashboard to trigger mock pushes in the shade. Tap <strong>Mark Paid</strong> on a push reminder to auto-log that transaction.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 pt-3.5">
+                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">6</span>
+                      <span>App Security PIN & Biometrics</span>
+                    </h3>
+                    <p className="text-[10px] text-text-secondary leading-normal font-body">
+                      Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad (verifies instantly) or the interactive fingerprint scan simulation.
+                    </p>
+                  </div>
                 </div>
               </section>
             )}

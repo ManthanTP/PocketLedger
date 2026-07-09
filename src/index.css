@@ -272,3 +272,24 @@
     animation: none !important;
   }
 }
+
+/* Custom Laser Sweep for biometric scanner */
+@keyframes laser-sweep {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+.animate-laser {
+  position: absolute;
+  animation: laser-sweep 2s ease-in-out infinite;
+}
+
+/* Custom Shake animation for authentication errors */
+@keyframes shake-h {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shake-h 0.4s ease-in-out;
+}

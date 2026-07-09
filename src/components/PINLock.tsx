@@ -6,6 +6,7 @@ import { Lock, Fingerprint, Delete, AlertCircle, HelpCircle, X } from 'lucide-re
 export const PINLock: React.FC = () => {
   const {
     pinHash,
+    pinLength,
     isLocked,
     unlockApp,
     securityQuestion,
@@ -13,7 +14,7 @@ export const PINLock: React.FC = () => {
     wipeAllData
   } = useFinanceStore();
 
-  const { showToast, showDialog } = useNotificationStore();
+  const { showToast } = useNotificationStore();
 
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -23,24 +24,29 @@ export const PINLock: React.FC = () => {
   const [recoveryError, setRecoveryError] = useState<boolean>(false);
   const [showWipeConfirm, setShowWipeConfirm] = useState<boolean>(false);
 
+  // Biometric state variables
+  const [biometricOpen, setBiometricOpen] = useState<boolean>(false);
+  const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
+  const [scanProgress, setScanProgress] = useState<number>(0);
+
   if (!isLocked || !pinHash) {
     return null;
   }
 
   const handleKeyPress = (num: string) => {
-    if (pin.length >= 6) return;
+    if (pin.length >= pinLength) return;
     setError(null);
     const newPin = pin + num;
     setPin(newPin);
 
-    // Check PIN matching
-    if (newPin.length >= 4) {
+    // Verify PIN instantly when the input length matches the set pinLength
+    if (newPin.length === pinLength) {
       const success = unlockApp(newPin);
       if (success) {
         setPin('');
         setError(null);
         showToast("Welcome back!", "success");
-      } else if (newPin.length >= 6) {
+      } else {
         triggerError();
       }
     }
@@ -60,17 +66,38 @@ export const PINLock: React.FC = () => {
   };
 
   const handleBiometricClick = () => {
-    showDialog({
-      title: "Biometric Verification",
-      message: "Simulate Biometric Fingerprint Unlock?",
-      type: "confirm",
-      confirmLabel: "Verify",
-      cancelLabel: "Cancel",
-      onConfirm: () => {
-        useFinanceStore.setState({ isLocked: false });
-        showToast("Biometric verification verified", "success");
+    setBiometricOpen(true);
+    setScanState('idle');
+    setScanProgress(0);
+  };
+
+  const startBiometricScan = () => {
+    if (scanState === 'scanning' || scanState === 'success') return;
+    setScanState('scanning');
+    setScanProgress(0);
+    
+    // Simulate high-fidelity biometric fingerprint scanning
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setScanProgress(progress);
+      if (progress >= 100) {
+        clearInterval(interval);
+        // 90% chance of success, 10% chance of scanning failure for realism
+        const isSuccess = Math.random() < 0.90;
+        if (isSuccess) {
+          setScanState('success');
+          setTimeout(() => {
+            setBiometricOpen(false);
+            useFinanceStore.setState({ isLocked: false });
+            showToast("Fingerprint scan verified. Welcome back!", "success");
+          }, 800);
+        } else {
+          setScanState('error');
+          showToast("Fingerprint not recognized. Please try again.", "error");
+        }
       }
-    });
+    }, 150);
   };
 
   const handleRecoverySubmit = (e: React.FormEvent) => {
@@ -103,7 +130,7 @@ export const PINLock: React.FC = () => {
       <div className="aurora-glow-orb top-10 left-10 bg-[#34D399] opacity-[0.06] blur-[100px]" aria-hidden="true" />
       <div className="aurora-glow-orb bottom-10 right-10 bg-[#8B5CF6] opacity-[0.06] blur-[100px]" aria-hidden="true" />
 
-      <div className={`w-full max-w-sm flex flex-col items-center justify-between min-h-[82vh] py-8 z-10 ${shake ? 'animate-bounce' : ''}`}>
+      <div className={`w-full max-w-sm flex flex-col items-center justify-between min-h-[82vh] py-8 z-10 ${shake ? 'animate-shake' : ''}`}>
         
         {/* Header Section */}
         <header className="flex flex-col items-center mt-6 text-center">
@@ -121,7 +148,7 @@ export const PINLock: React.FC = () => {
         {/* PIN Dot Indicators */}
         <section className="my-6 flex flex-col items-center w-full" aria-label="PIN Input State">
           <div className="flex space-x-4 mb-4">
-            {[...Array(6)].map((_, i) => (
+            {[...Array(pinLength)].map((_, i) => (
               <div
                 key={i}
                 className={`w-3 h-3 rounded-full border transition-all duration-150 ${
@@ -161,7 +188,7 @@ export const PINLock: React.FC = () => {
             onClick={handleBiometricClick}
             className="h-16 rounded-full flex items-center justify-center bg-bg-surface/50 border border-border-custom/50 text-accent-green hover:bg-white/5 active:scale-[0.88] transition-all cursor-pointer"
           >
-            <Fingerprint className="w-6 h-6" />
+            <Fingerprint className="w-6 h-6 animate-pulse" />
           </button>
           <button
             id="pin-key-0"
@@ -305,6 +332,117 @@ export const PINLock: React.FC = () => {
                   className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-accent-red/30 hover:bg-accent-red/10 text-accent-red text-xs font-bold transition cursor-pointer"
                 >
                   Wipe & Reset App
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Real Biometric Fingerprint Scanner Bottom Sheet/Modal */}
+      {biometricOpen && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="w-full max-w-sm bg-bg-surface border border-border-custom rounded-3xl p-6 shadow-2xl relative text-center space-y-6 animate-scale-pulse">
+            <button
+              onClick={() => setBiometricOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/5 text-text-subtle hover:text-text-primary min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-text-primary font-display m-0">
+                Biometric Login
+              </h2>
+              <p className="text-xs text-text-subtle font-body mt-0.5">
+                Verify identity using fingerprint sensor
+              </p>
+            </div>
+
+            {/* Circular Glowing Scanner ring */}
+            <div className="flex justify-center py-4">
+              <button
+                onClick={startBiometricScan}
+                className={`relative w-36 h-36 rounded-full border-2 flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                  scanState === 'scanning'
+                    ? 'border-accent-green bg-accent-green/5 shadow-[0_0_25px_rgba(16,185,129,0.2)]'
+                    : scanState === 'success'
+                    ? 'border-accent-green bg-accent-green/10 shadow-[0_0_35px_rgba(16,185,129,0.4)]'
+                    : scanState === 'error'
+                    ? 'border-accent-red bg-accent-red/10 shadow-[0_0_25px_rgba(239,68,68,0.3)] animate-shake'
+                    : 'border-border-custom bg-white/3 hover:bg-white/5 hover:border-white/20'
+                }`}
+              >
+                {/* Fingerprint Symbol */}
+                <div className="relative overflow-hidden w-20 h-20 flex items-center justify-center">
+                  <Fingerprint className={`w-20 h-20 transition-all duration-300 ${
+                    scanState === 'scanning'
+                      ? 'text-accent-green-light scale-105'
+                      : scanState === 'success'
+                      ? 'text-accent-green scale-105'
+                      : scanState === 'error'
+                      ? 'text-accent-red'
+                      : 'text-text-secondary'
+                  }`} />
+                  
+                  {/* Glowing Laser Sweep Line */}
+                  {scanState === 'scanning' && (
+                    <div className="absolute left-0 right-0 h-0.5 bg-accent-green-light shadow-[0_0_8px_#10B981] animate-laser" />
+                  )}
+                </div>
+
+                {/* Progress Circle Border */}
+                {scanState === 'scanning' && (
+                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="46"
+                      stroke="rgba(16,185,129,0.2)"
+                      strokeWidth="2.5"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="46"
+                      stroke="#10B981"
+                      strokeWidth="3"
+                      fill="transparent"
+                      strokeDasharray={289}
+                      strokeDashoffset={289 - (289 * scanProgress) / 100}
+                      className="transition-all duration-150"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className={`text-xs font-semibold font-body min-h-[16px] transition-colors duration-200 mt-0 ${
+                scanState === 'scanning'
+                  ? 'text-accent-green-light animate-pulse'
+                  : scanState === 'success'
+                  ? 'text-accent-green'
+                  : scanState === 'error'
+                  ? 'text-accent-red'
+                  : 'text-text-secondary'
+              }`}>
+                {scanState === 'idle' && 'Tap the sensor to scan fingerprint'}
+                {scanState === 'scanning' && `Scanning... ${scanProgress}%`}
+                {scanState === 'success' && 'Scan Complete! Unlocked'}
+                {scanState === 'error' && 'Scan Failed. Tap sensor to retry'}
+              </p>
+
+              {scanState === 'error' && (
+                <button
+                  onClick={() => {
+                    setScanState('idle');
+                    setScanProgress(0);
+                  }}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-primary text-xs font-bold rounded-xl cursor-pointer transition-colors duration-150"
+                >
+                  Retry Scan
                 </button>
               )}
             </div>
