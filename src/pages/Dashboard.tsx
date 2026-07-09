@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Layers, Bell, TrendingUp, Sparkles, Target } from 'lucide-react';
+import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Layers, Bell, Sparkles, Target } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';

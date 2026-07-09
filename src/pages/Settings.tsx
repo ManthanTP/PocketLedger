@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 
-type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders';
+type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals';
 
 export const Settings: React.FC = () => {
   const {
@@ -15,6 +15,10 @@ export const Settings: React.FC = () => {
     addReminder,
     updateReminder,
     deleteReminder,
+    goals,
+    addGoal,
+    updateGoal,
+    deleteGoal,
     categories,
     addCategory,
     deleteCategory,
@@ -63,6 +67,14 @@ export const Settings: React.FC = () => {
   const [remDay, setRemDay] = useState(1);
   const [remChannel, setRemChannel] = useState<'Bill Reminders' | 'Loan Repayments' | 'Budget Alerts' | 'Backup Reminders'>('Bill Reminders');
 
+  // Goals states
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
+  const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [goalTitle, setGoalTitle] = useState('');
+  const [goalTarget, setGoalTarget] = useState(0);
+  const [goalSaved, setGoalSaved] = useState(0);
+  const [goalDate, setGoalDate] = useState('');
+
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 450);
@@ -76,6 +88,9 @@ export const Settings: React.FC = () => {
         accounts,
         transactions,
         categories,
+        budgets,
+        reminders,
+        goals,
         settings: {
           theme,
           currency,
@@ -149,6 +164,19 @@ export const Settings: React.FC = () => {
                 isLocked: false
               });
             }
+          }
+
+          if (json.budgets) {
+            localStorage.setItem('budgets', JSON.stringify(json.budgets));
+            useFinanceStore.setState({ budgets: json.budgets });
+          }
+          if (json.reminders) {
+            localStorage.setItem('reminders', JSON.stringify(json.reminders));
+            useFinanceStore.setState({ reminders: json.reminders });
+          }
+          if (json.goals) {
+            localStorage.setItem('goals', JSON.stringify(json.goals));
+            useFinanceStore.setState({ goals: json.goals });
           }
 
           await useFinanceStore.getState().fetchData();
@@ -270,6 +298,51 @@ export const Settings: React.FC = () => {
     setRemChannel('Bill Reminders');
   };
 
+  const handleSaveGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!goalTitle || goalTarget <= 0 || !goalDate) {
+      showToast("Title, positive target and target date are required", "error");
+      return;
+    }
+    const payload = {
+      title: goalTitle,
+      targetAmount: goalTarget,
+      currentSaved: goalSaved,
+      targetDate: goalDate
+    };
+
+    if (editingGoal) {
+      updateGoal(editingGoal.id, payload);
+    } else {
+      addGoal(payload);
+    }
+
+    setEditingGoal(null);
+    setIsAddingGoal(false);
+    setGoalTitle('');
+    setGoalTarget(0);
+    setGoalSaved(0);
+    setGoalDate('');
+  };
+
+  const startEditGoal = (g: any) => {
+    setEditingGoal(g);
+    setIsAddingGoal(false);
+    setGoalTitle(g.title);
+    setGoalTarget(g.targetAmount);
+    setGoalSaved(g.currentSaved);
+    setGoalDate(g.targetDate);
+  };
+
+  const startAddGoal = () => {
+    setEditingGoal(null);
+    setIsAddingGoal(true);
+    setGoalTitle('');
+    setGoalTarget(0);
+    setGoalSaved(0);
+    setGoalDate('');
+  };
+
   return (
     <div className="pb-24 transition-all duration-300">
       
@@ -307,6 +380,8 @@ export const Settings: React.FC = () => {
               {activePanel === 'currency' && 'Currency Settings'}
               {activePanel === 'theme' && 'Visual Theme'}
               {activePanel === 'budgets' && 'Monthly Budgets'}
+              {activePanel === 'reminders' && 'Notification Reminders'}
+              {activePanel === 'goals' && 'Savings Targets'}
             </h1>
           </div>
           <div className="w-10 h-10" />
@@ -370,6 +445,23 @@ export const Settings: React.FC = () => {
                 <div>
                   <span className="text-xs font-bold text-text-primary block font-display">Notification Reminders</span>
                   <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Create, edit, and schedule push alerts</span>
+                </div>
+              </div>
+            </button>
+
+            {/* Savings Targets Option */}
+            <button
+              id="settings-menu-goals"
+              onClick={() => setActivePanel('goals')}
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 bg-accent-green/10 text-accent-green-light rounded-xl" aria-hidden="true">
+                  <Target className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-primary block font-display">Savings Targets</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Set and track savings goals progress</span>
                 </div>
               </div>
             </button>
@@ -726,6 +818,154 @@ export const Settings: React.FC = () => {
                       ) : (
                         <div className="py-8 text-center text-text-subtle text-xs">
                           No custom reminders scheduled yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Sub-panel Goals */}
+            {activePanel === 'goals' && (
+              <section id="settings-goals-panel" className="bento-card space-y-4 text-left">
+                {isAddingGoal || editingGoal ? (
+                  <form onSubmit={handleSaveGoal} className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-sm font-bold text-text-primary font-display">
+                        {editingGoal ? 'Edit Savings Target' : 'New Savings Target'}
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => { setIsAddingGoal(false); setEditingGoal(null); }}
+                        className="text-xs font-bold text-text-subtle hover:text-text-primary cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    <div className="space-y-3.5">
+                      <div className="space-y-1">
+                        <label htmlFor="goal-title-input" className="text-[10px] font-bold text-text-secondary uppercase">Goal Title</label>
+                        <input
+                          id="goal-title-input"
+                          type="text"
+                          required
+                          placeholder="e.g. Dream Vacation, Laptop Fund"
+                          value={goalTitle}
+                          onChange={(e) => setGoalTitle(e.target.value)}
+                          className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label htmlFor="goal-target-input" className="text-[10px] font-bold text-text-secondary uppercase">Target Amount ({currency})</label>
+                          <input
+                            id="goal-target-input"
+                            type="number"
+                            required
+                            placeholder="0"
+                            value={goalTarget || ''}
+                            onChange={(e) => setGoalTarget(parseFloat(e.target.value) || 0)}
+                            className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs text-right focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label htmlFor="goal-saved-input" className="text-[10px] font-bold text-text-secondary uppercase">Current Saved ({currency})</label>
+                          <input
+                            id="goal-saved-input"
+                            type="number"
+                            placeholder="0"
+                            value={goalSaved || ''}
+                            onChange={(e) => setGoalSaved(parseFloat(e.target.value) || 0)}
+                            className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs text-right focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label htmlFor="goal-date-input" className="text-[10px] font-bold text-text-secondary uppercase">Target Date</label>
+                        <input
+                          id="goal-date-input"
+                          type="date"
+                          required
+                          value={goalDate}
+                          onChange={(e) => setGoalDate(e.target.value)}
+                          className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold rounded-xl text-xs shadow-md transition duration-150 cursor-pointer text-center"
+                    >
+                      {editingGoal ? 'Save Changes' : 'Create Target'}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-sm font-bold text-text-primary font-display">Savings Goals</h2>
+                      <button
+                        onClick={startAddGoal}
+                        className="px-3 py-1.5 bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold rounded-lg text-[10px] shadow-xs transition duration-150 cursor-pointer flex items-center space-x-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Goal</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-3.5 max-h-[350px] overflow-y-auto no-scrollbar pr-1 divide-y divide-border-custom">
+                      {goals.length > 0 ? (
+                        goals.map((g) => {
+                          const pct = Math.min(100, Math.round((g.currentSaved / g.targetAmount) * 100));
+                          return (
+                            <div key={g.id} className="pt-3 pb-1 flex flex-col space-y-2">
+                              <div className="flex items-center justify-between space-x-4">
+                                <div className="min-w-0 text-left">
+                                  <h3 className="text-xs font-bold text-text-primary truncate">{g.title}</h3>
+                                  <span className="text-[8px] font-extrabold bg-white/5 border border-white/10 px-1.5 py-0.5 rounded text-text-secondary uppercase">
+                                    Target: {g.targetDate}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-1 flex-shrink-0">
+                                  <button
+                                    onClick={() => startEditGoal(g)}
+                                    aria-label={`Edit goal ${g.title}`}
+                                    className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-white/5 text-text-subtle hover:text-text-primary cursor-pointer"
+                                  >
+                                    <Palette className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteGoal(g.id)}
+                                    aria-label={`Delete goal ${g.title}`}
+                                    className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-white/5 text-text-subtle hover:text-accent-red cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center text-[9px] text-text-secondary">
+                                  <span>Progress: {pct}%</span>
+                                  <span>{currency}{g.currentSaved.toLocaleString('en-IN')} / {currency}{g.targetAmount.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div className="w-full h-1 bg-bg-elevated rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-accent-green"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="py-8 text-center text-text-subtle text-xs">
+                          No savings goals scheduled yet.
                         </div>
                       )}
                     </div>

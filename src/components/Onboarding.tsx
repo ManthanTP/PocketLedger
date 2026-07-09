@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { Wallet, ShieldCheck, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { Wallet, ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
 import type { Account } from '../db/db';
 import { AppIconFull } from './AppIcon';
 

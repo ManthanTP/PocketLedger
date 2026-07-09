@@ -487,6 +487,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   wipeAllData: async () => {
     await db.wipeDatabase();
+    localStorage.removeItem('budgets');
+    localStorage.removeItem('reminders');
+    localStorage.removeItem('goals');
     set({
       accounts: [],
       transactions: [],
@@ -502,6 +505,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       securityAnswer: null,
       autoLockTimeout: 5,
       hideBalance: false,
+      budgets: {},
+      reminders: [],
+      goals: []
     });
     // Apply changes
     get().setTheme('system');
