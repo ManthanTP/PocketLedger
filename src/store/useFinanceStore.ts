@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { db, initDB } from '../db/db';
 import type { Account, Transaction, Category } from '../db/db';
+import { useNotificationStore } from './useNotificationStore';
 
 export interface ReminderItem {
   id: string;
@@ -490,6 +491,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     localStorage.removeItem('budgets');
     localStorage.removeItem('reminders');
     localStorage.removeItem('goals');
+    useNotificationStore.setState({ simulatedNotifications: [], toasts: [], banners: [] });
     set({
       accounts: [],
       transactions: [],
@@ -540,6 +542,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     const updated = get().reminders.filter((r) => r.id !== id);
     localStorage.setItem('reminders', JSON.stringify(updated));
     set({ reminders: updated });
+
+    // Dismiss active simulated notifications for this reminder
+    const active = useNotificationStore.getState().simulatedNotifications.filter(
+      (n) => !n.id.startsWith(id)
+    );
+    useNotificationStore.setState({ simulatedNotifications: active });
   },
 
   addGoal: (data) => {

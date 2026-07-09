@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Layers, Bell, Sparkles, Target } from 'lucide-react';
+import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Bell, Sparkles, Target } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
@@ -44,6 +44,8 @@ export const Dashboard: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [netBalance]);
+
+  const [activeChart, setActiveChart] = useState<'flow' | 'category'>('flow');
 
   // 3. Pull to Refresh State
   const [startY, setStartY] = useState(0);
@@ -99,10 +101,6 @@ export const Dashboard: React.FC = () => {
   const thisMonthExpense = currentMonthTxs
     .filter(tx => tx.type === 'expense')
     .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const cashAccount = accounts.find(a => a.type === 'Cash');
-  const cashInHand = cashAccount ? cashAccount.currentBalance : 0;
-
   // Chart 1 Data: Income vs Expense (Current Month)
   const barChartData = [
     {
@@ -151,59 +149,23 @@ export const Dashboard: React.FC = () => {
   const [notificationIndex, setNotificationIndex] = useState(0);
 
   const handleTriggerSimulatedNotification = () => {
-    const list = reminders.length > 0
-      ? reminders.map((rem) => ({
-          id: rem.id + '-' + Date.now(),
-          title: rem.title,
-          body: `${currency}${rem.amount.toLocaleString('en-IN')} · ${rem.body}`,
-          channel: rem.channel,
-          actions: rem.channel === 'Bill Reminders' ? [
-            { label: 'Mark Paid', isPrimary: true, actionId: 'mark-paid' },
-            { label: 'Snooze', actionId: 'snooze' }
-          ] : [
-            { label: 'Snooze', actionId: 'snooze' }
-          ]
-        }))
-      : [
-          {
-            id: 'bill-elec-' + Date.now(),
-            title: 'Electricity bill due tomorrow',
-            body: '₹1,240 · usually paid from Cash',
-            channel: 'Bill Reminders' as const,
-            actions: [
-              { label: 'Mark Paid', isPrimary: true, actionId: 'mark-paid' },
-              { label: 'Snooze', actionId: 'snooze' }
-            ]
-          },
-          {
-            id: 'loan-car-' + Date.now(),
-            title: 'Car Loan repayment overdue',
-            body: '₹12,500 · due 2 days ago',
-            channel: 'Loan Repayments' as const,
-            actions: [
-              { label: 'Pay Now', isPrimary: true, actionId: 'snooze' },
-              { label: 'Remind Me', actionId: 'snooze' }
-            ]
-          },
-          {
-            id: 'budget-ent-' + Date.now(),
-            title: 'Entertainment Budget Exceeded 90%',
-            body: '₹4,500 / ₹5,000 spent this month',
-            channel: 'Budget Alerts' as const,
-            actions: [
-              { label: 'View Budgets', isPrimary: true, actionId: 'snooze' }
-            ]
-          },
-          {
-            id: 'backup-overdue-' + Date.now(),
-            title: 'Database backup overdue',
-            body: 'Last backup was created 7 days ago',
-            channel: 'Backup Reminders' as const,
-            actions: [
-              { label: 'Backup Now', isPrimary: true, actionId: 'snooze' }
-            ]
-          }
-        ];
+    if (reminders.length === 0) {
+      showToast('No active notification reminders configured. Set them up in Settings.', 'info');
+      return;
+    }
+
+    const list = reminders.map((rem) => ({
+      id: rem.id + '-' + Date.now(),
+      title: rem.title,
+      body: `${currency}${rem.amount.toLocaleString('en-IN')} · ${rem.body}`,
+      channel: rem.channel,
+      actions: rem.channel === 'Bill Reminders' ? [
+        { label: 'Mark Paid', isPrimary: true, actionId: 'mark-paid' },
+        { label: 'Snooze', actionId: 'snooze' }
+      ] : [
+        { label: 'Snooze', actionId: 'snooze' }
+      ]
+    }));
 
     const currentNotification = list[notificationIndex % list.length];
     triggerAndroidNotification(currentNotification);
@@ -312,13 +274,13 @@ export const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* 4-Column Bento Grid Financial Overview Layout */}
-      <section aria-label="Financial Overview" className="grid grid-cols-4 gap-4 auto-rows-[140px]">
+      {/* Spacious Bento Grid Financial Overview Layout */}
+      <section aria-label="Financial Overview" className="grid grid-cols-4 gap-4">
         
-        {/* Card 1: Net Balance Card - Bento Large (2x1) */}
+        {/* Card 1: Net Balance Card - Bento Hero (4x1) */}
         <div 
           id="dashboard-worth-card" 
-          className={`col-span-2 row-span-1 bento-card-elevated flex flex-col justify-between p-5 relative overflow-hidden transition-transform duration-150 ${
+          className={`col-span-4 h-[160px] bento-card-elevated flex flex-col justify-between p-5 relative overflow-hidden transition-all duration-150 ${
             pulseBalance ? 'animate-scale-pulse' : ''
           }`}
         >
@@ -327,194 +289,174 @@ export const Dashboard: React.FC = () => {
           <div className="aurora-glow-orb -bottom-20 -right-20 bg-[#8B5CF6] opacity-[0.06]" aria-hidden="true" />
           
           <div className="relative z-10 flex flex-col justify-between h-full text-left">
-            <div>
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
-                Total Net Worth
-              </span>
-              <div className="text-3xl font-extrabold tracking-tight mt-1">
-                <span className={`net-balance-text transition duration-200 ${hideBalance ? 'blur-balance' : ''}`}>
-                  {formatAmount(netBalance)}
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
+                  Total Net Worth
                 </span>
+                <div className="text-3xl font-extrabold tracking-tight mt-1">
+                  <span className={`net-balance-text transition duration-200 ${hideBalance ? 'blur-balance' : ''}`}>
+                    {formatAmount(netBalance)}
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex justify-between items-center text-xs font-bold text-text-primary">
-              <span className="text-[10px] text-text-subtle font-normal">Indexed Locally</span>
               <button
                 onClick={() => setActiveTab('accounts')}
-                className="px-3 py-1.5 min-h-[32px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-text-primary transition cursor-pointer text-[10px]"
+                className="px-3.5 py-1.5 min-h-[32px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-text-primary transition cursor-pointer text-[10px] font-bold"
               >
-                Accounts
+                Manage Wallets
               </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-accent-green/10 text-accent-green-light">
+                  <ArrowUpRight className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[9px] text-text-subtle font-semibold uppercase font-body leading-none tracking-wider">Income This Month</p>
+                  <p className="text-sm font-bold text-text-primary mt-1">{formatAmount(thisMonthIncome)}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-accent-red/10 text-accent-red">
+                  <ArrowDownRight className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[9px] text-text-subtle font-semibold uppercase font-body leading-none tracking-wider">Spend This Month</p>
+                  <p className="text-sm font-bold text-text-primary mt-1">{formatAmount(thisMonthExpense)}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Income Card - Bento Small (1x1) */}
-        <button
-          id="dashboard-income-card"
-          onClick={() => setActiveTab('reports')}
-          className="col-span-1 row-span-1 bento-card flex flex-col justify-between text-left cursor-pointer transition-all duration-200"
-          aria-label={`Current month income ${formatAmount(thisMonthIncome)}. View Reports`}
-        >
-          <div className="flex justify-between items-start w-full">
-            <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wide font-body">
-              Income
-            </span>
-            <div className="p-1 rounded-lg bg-accent-green/10 text-accent-green-light" aria-hidden="true">
-              <ArrowUpRight className="w-4 h-4" />
+        {/* Card 2: Smart Insights Banner (4x1) */}
+        <div className="col-span-4 h-[76px] bento-card flex items-center justify-between p-4 relative overflow-hidden">
+          <div className="flex items-center space-x-3.5 text-left">
+            <div className="p-2.5 rounded-xl bg-accent-violet/10 text-accent-violet flex-shrink-0 animate-pulse">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[9px] text-text-subtle font-bold uppercase tracking-wider font-body">Smart Insights</span>
+              <div className="text-[10px] text-text-secondary leading-normal font-body font-medium max-w-sm">
+                {thisMonthIncome > 0 ? (
+                  (() => {
+                    const savingsRate = Math.round(((thisMonthIncome - thisMonthExpense) / thisMonthIncome) * 100);
+                    if (savingsRate > 20) {
+                      return <>Excellent! You saved <span className="text-accent-green-light font-bold">{savingsRate}%</span> of your income this month. Keep it up!</>;
+                    } else if (savingsRate >= 0) {
+                      return <>Your savings rate is <span className="text-accent-amber font-bold">{savingsRate}%</span>. Consider trimming expenses to build reserves.</>;
+                    } else {
+                      return <><span className="text-accent-red font-bold">Deficit Warning:</span> Outflows exceed inflows by <span className="text-accent-red font-bold">{Math.abs(savingsRate)}%</span>. Limit variable spending.</>;
+                    }
+                  })()
+                ) : (
+                  <>Log your first monthly income transactions to unlock dynamic savings analytics and automated suggestions.</>
+                )}
+              </div>
             </div>
           </div>
-          <span className="text-base font-bold text-text-primary tracking-tight truncate leading-none">
-            {formatAmount(thisMonthIncome)}
-          </span>
-        </button>
+          <span className="text-[9px] text-text-subtle font-semibold flex-shrink-0">AI Advisor</span>
+        </div>
 
-        {/* Card 3: Expenses Card - Bento Small (1x1) */}
-        <button
-          id="dashboard-spend-card"
-          onClick={() => setActiveTab('reports')}
-          className="col-span-1 row-span-1 bento-card flex flex-col justify-between text-left cursor-pointer transition-all duration-200"
-          aria-label={`Current month spend ${formatAmount(thisMonthExpense)}. View Reports`}
-        >
-          <div className="flex justify-between items-start w-full">
-            <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wide font-body">
-              Spend
-            </span>
-            <div className="p-1 rounded-lg bg-accent-red/10 text-accent-red" aria-hidden="true">
-              <ArrowDownRight className="w-4 h-4" />
+        {/* Card 3: Interactive Financial Charts Card (4x1) */}
+        <div className="col-span-4 h-[210px] bento-card flex flex-col justify-between p-4">
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center space-x-1.5 bg-bg-elevated/45 border border-border-custom p-0.5 rounded-xl">
+              <button
+                onClick={() => setActiveChart('flow')}
+                className={`px-3 py-1 text-[9px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
+                  activeChart === 'flow' 
+                    ? 'bg-bg-surface text-text-primary shadow-xs border border-border-custom' 
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Cash Flow Trend
+              </button>
+              <button
+                onClick={() => setActiveChart('category')}
+                className={`px-3 py-1 text-[9px] font-bold rounded-lg transition-all duration-150 cursor-pointer ${
+                  activeChart === 'category' 
+                    ? 'bg-bg-surface text-text-primary shadow-xs border border-border-custom' 
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Expense Breakdown
+              </button>
             </div>
-          </div>
-          <span className="text-base font-bold text-text-primary tracking-tight truncate leading-none">
-            {formatAmount(thisMonthExpense)}
-          </span>
-        </button>
-
-        {/* Card 4: Cash in Hand Card - Bento Small (1x1) */}
-        <button
-          id="dashboard-cash-card"
-          onClick={() => setActiveTab('accounts')}
-          className="col-span-1 row-span-1 bento-card flex flex-col justify-between text-left cursor-pointer transition-all duration-200"
-          aria-label={`Cash in hand ${formatAmount(cashInHand)}. View Accounts`}
-        >
-          <div className="flex justify-between items-start w-full">
-            <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wide font-body">
-              Cash
-            </span>
-            <div className="p-1 rounded-lg bg-accent-amber/10 text-accent-amber" aria-hidden="true">
-              <Wallet className="w-4 h-4" />
-            </div>
-          </div>
-          <span className="text-base font-bold text-text-primary tracking-tight truncate leading-none">
-            {formatAmount(cashInHand)}
-          </span>
-        </button>
-
-        {/* Card 5: Active Wallets Card - Bento Small (1x1) */}
-        <button
-          id="dashboard-accounts-card"
-          onClick={() => setActiveTab('accounts')}
-          className="col-span-1 row-span-1 bento-card flex flex-col justify-between text-left cursor-pointer transition-all duration-200"
-          aria-label={`Manage your ${accounts.length} active financial accounts.`}
-        >
-          <div className="flex justify-between items-start w-full">
-            <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wide font-body">
-              Wallets
-            </span>
-            <div className="p-1 rounded-lg bg-indigo-500/10 text-indigo-400" aria-hidden="true">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <span className="text-base font-bold text-text-primary tracking-tight leading-none">
-            {accounts.length}
-          </span>
-        </button>
-
-        {/* Card 6: Income vs Expense Chart - Bento Wide (2x1) */}
-        <div className="col-span-2 row-span-1 bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-1 text-left">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
-              Cash Flow Trend
-            </span>
             <button
               onClick={() => setActiveTab('reports')}
               className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
             >
-              Reports
+              Reports Detail
             </button>
           </div>
-          <div className="h-24 w-full" aria-hidden="true">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <XAxis dataKey="name" stroke="rgba(255,255,255,0.38)" fontSize={9} tickLine={false} />
-                <YAxis stroke="rgba(255,255,255,0.38)" fontSize={9} tickLine={false} />
-                <Tooltip formatter={(value) => `${currency}${value}`} />
-                <Bar dataKey="Income" fill="#10B981" radius={[3, 3, 0, 0]} isAnimationActive={true} animationDuration={500} />
-                <Bar dataKey="Expense" fill="#EF4444" radius={[3, 3, 0, 0]} isAnimationActive={true} animationDuration={500} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
-        {/* Card 7: Category Pie Chart - Bento Wide (2x1) */}
-        <div className="col-span-2 row-span-1 bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-1 text-left">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
-              Expenses Breakdown
-            </span>
-            <span className="text-[9px] text-text-subtle font-semibold">
-              This Month
-            </span>
-          </div>
-
-          {pieChartData.length > 0 ? (
-            <div className="h-24 w-full flex items-center justify-between">
-              <div className="w-[45%] h-full" aria-hidden="true">
+          <div className="flex-1 w-full relative flex items-center justify-center">
+            {activeChart === 'flow' ? (
+              <div className="h-full w-full" aria-hidden="true">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieChartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={18}
-                      outerRadius={32}
-                      paddingAngle={3}
-                      dataKey="value"
-                      isAnimationActive={true}
-                      animationDuration={500}
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
+                  <BarChart data={barChartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="rgba(255,255,255,0.38)" fontSize={9} tickLine={false} />
+                    <YAxis stroke="rgba(255,255,255,0.38)" fontSize={9} tickLine={false} />
                     <Tooltip formatter={(value) => `${currency}${value}`} />
-                  </PieChart>
+                    <Bar dataKey="Income" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={400} />
+                    <Bar dataKey="Expense" fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={400} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
-              
-              {/* Legend */}
-              <div className="w-[55%] flex flex-col space-y-1 overflow-y-auto max-h-[84px] no-scrollbar text-left pr-1">
-                {pieChartData.slice(0, 3).map((entry, i) => (
-                  <div key={i} className="flex items-center justify-between text-[10px]">
-                    <div className="flex items-center space-x-1.5 min-w-0">
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                      <span className="text-text-secondary font-medium truncate max-w-[50px]">{entry.name}</span>
-                    </div>
-                    <span className="text-text-primary font-bold">{currency}{entry.value.toFixed(0)}</span>
+            ) : (
+              pieChartData.length > 0 ? (
+                <div className="h-full w-full flex items-center justify-between">
+                  <div className="w-[40%] h-full" aria-hidden="true">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieChartData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={22}
+                          outerRadius={36}
+                          paddingAngle={3}
+                          dataKey="value"
+                          isAnimationActive={true}
+                          animationDuration={400}
+                        >
+                          {pieChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => `${currency}${value}`} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="h-24 flex items-center justify-center text-[10px] text-text-subtle">
-              No expenses logged
-            </div>
-          )}
+                  
+                  {/* Legend */}
+                  <div className="w-[60%] flex flex-col space-y-1.5 overflow-y-auto max-h-[110px] no-scrollbar text-left pr-2">
+                    {pieChartData.slice(0, 4).map((entry, i) => (
+                      <div key={i} className="flex items-center justify-between text-[10px]">
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                          <span className="text-text-secondary font-medium truncate max-w-[80px]">{entry.name}</span>
+                        </div>
+                        <span className="text-text-primary font-bold">{currency}{entry.value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-[10px] text-text-subtle">
+                  No expenses logged this month
+                </div>
+              )
+            )}
+          </div>
         </div>
 
-        {/* Card 7.5: Budgets Health Card - Bento Wide (2x1) */}
-        <div className="col-span-2 row-span-1 bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-1 text-left">
+        {/* Card 4: Budgets Health Card - Bento Half (2x1) */}
+        <div className="col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
+          <div className="flex justify-between items-center mb-2 text-left">
             <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
               Active Budgets
             </span>
@@ -526,7 +468,6 @@ export const Dashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* List of active budgets or fallback */}
           {Object.keys(budgets).some(key => budgets[key] > 0) ? (
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
               {Object.keys(budgets)
@@ -540,8 +481,8 @@ export const Dashboard: React.FC = () => {
                   return (
                     <div key={catName} className="space-y-1">
                       <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-text-secondary">{catName}</span>
-                        <span className="font-bold text-text-primary">
+                        <span className="font-bold text-text-secondary truncate max-w-[60px]">{catName}</span>
+                        <span className="font-bold text-text-primary text-[9px]">
                           {formatAmount(spent)} / <span className="text-text-subtle">{formatAmount(limit)}</span>
                         </span>
                       </div>
@@ -558,13 +499,13 @@ export const Dashboard: React.FC = () => {
                 })}
             </div>
           ) : (
-            <div className="h-24 flex flex-col items-center justify-center text-center space-y-1.5">
-              <p className="text-[10px] text-text-subtle font-medium leading-tight">
-                No monthly budgets set. Plan your spending limits in Settings.
+            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-1">
+              <p className="text-[9px] text-text-subtle font-medium leading-tight">
+                No monthly spending limits set.
               </p>
               <button
                 onClick={() => setActiveTab('settings')}
-                className="px-3 py-1 bg-white/5 hover:bg-white/10 text-text-primary font-bold text-[9px] rounded-lg cursor-pointer transition-colors duration-150"
+                className="px-2.5 py-0.5 bg-white/5 hover:bg-white/10 text-text-primary font-bold text-[8px] rounded-lg cursor-pointer transition-colors duration-150"
               >
                 Set Budgets
               </button>
@@ -572,9 +513,9 @@ export const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Card 7.6: Savings Targets - Bento Wide (2x1) */}
-        <div className="col-span-2 row-span-1 bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-1 text-left">
+        {/* Card 5: Savings Targets - Bento Half (2x1) */}
+        <div className="col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
+          <div className="flex justify-between items-center mb-2 text-left">
             <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body flex items-center space-x-1">
               <Target className="w-3.5 h-3.5 text-accent-green" aria-hidden="true" />
               <span>Savings Targets</span>
@@ -594,9 +535,9 @@ export const Dashboard: React.FC = () => {
                 return (
                   <div key={goal.id} className="space-y-1">
                     <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-text-secondary">{goal.title}</span>
-                      <span className="font-bold text-text-primary">
-                        {pct}% ({currency}{goal.currentSaved.toLocaleString('en-IN')} / {currency}{goal.targetAmount.toLocaleString('en-IN')})
+                      <span className="font-bold text-text-secondary truncate max-w-[60px]">{goal.title}</span>
+                      <span className="font-bold text-text-primary text-[9px]">
+                        {pct}% ({currency}{goal.currentSaved.toLocaleString('en-IN', { maximumFractionDigits: 0 })})
                       </span>
                     </div>
                     <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
@@ -610,66 +551,12 @@ export const Dashboard: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="h-24 flex flex-col items-center justify-center text-center space-y-1.5">
-              <p className="text-[10px] text-text-subtle font-medium leading-tight">
-                No savings goals tracked yet. Plan targets in Settings.
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <p className="text-[9px] text-text-subtle font-medium leading-tight">
+                No savings goals tracked yet.
               </p>
             </div>
           )}
-        </div>
-
-        {/* Card 7.7: Smart Insights - Bento Wide (2x1) */}
-        <div className="col-span-2 row-span-1 bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-1 text-left">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-accent-violet" aria-hidden="true" />
-              <span>Smart Insights</span>
-            </span>
-            <span className="text-[9px] text-text-subtle font-semibold">AI Analytics</span>
-          </div>
-
-          <div className="flex-1 flex flex-col justify-center text-left py-1">
-            {thisMonthIncome > 0 ? (
-              (() => {
-                const savingsRate = Math.round(((thisMonthIncome - thisMonthExpense) / thisMonthIncome) * 100);
-                if (savingsRate > 20) {
-                  return (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-text-primary font-bold">Excellent Savings Rate!</p>
-                      <p className="text-[9px] text-text-subtle leading-normal font-body">
-                        You saved <span className="text-accent-green-light font-bold">{savingsRate}%</span> of your income this month. Keep building your wealth!
-                      </p>
-                    </div>
-                  );
-                } else if (savingsRate >= 0) {
-                  return (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-text-primary font-bold">Stable Budget Balance</p>
-                      <p className="text-[9px] text-text-subtle leading-normal font-body">
-                        Your savings rate is <span className="text-accent-amber font-bold">{savingsRate}%</span>. Consider cutting variable expenses to save more.
-                      </p>
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-accent-red font-bold">Deficit Alert</p>
-                      <p className="text-[9px] text-text-subtle leading-normal font-body">
-                        Outflows exceed inflows by <span className="text-accent-red font-bold">{Math.abs(savingsRate)}%</span>. Check category limits.
-                      </p>
-                    </div>
-                  );
-                }
-              })()
-            ) : (
-              <div className="space-y-1">
-                <p className="text-[10px] text-text-primary font-bold">Awaiting Inflows</p>
-                <p className="text-[9px] text-text-subtle leading-normal font-body">
-                  Log your first monthly income transactions to unlock savings rate analysis and automated tips.
-                </p>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Card 8: Recent Activities List - Bento Extra Large (4x2, full width) */}
