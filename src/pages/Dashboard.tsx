@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Bell, Sparkles, Target } from 'lucide-react';
+import { Eye, EyeOff, ArrowUpRight, ArrowDownRight, Wallet, ArrowRightLeft, ArrowRight, Bell, Sparkles, Target, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
@@ -15,6 +15,7 @@ export const Dashboard: React.FC = () => {
     setHideBalance,
     openAddModal,
     setActiveTab,
+    setSettingsActivePanel,
     setSelectedTransaction,
     budgets,
     reminders,
@@ -126,6 +127,18 @@ export const Dashboard: React.FC = () => {
     color: pieChartColors[index % pieChartColors.length]
   })).sort((a, b) => b.value - a.value);
 
+  // Check if any budget category has spent >= 90%
+  const budgetAlerts = Object.keys(budgets)
+    .filter((cat) => budgets[cat] > 0)
+    .map((cat) => {
+      const limit = budgets[cat];
+      const spent = categoryDataMap[cat] || 0;
+      const pct = Math.round((spent / limit) * 100);
+      return { cat, spent, limit, pct };
+    })
+    .filter((item) => item.pct >= 90)
+    .sort((a, b) => b.pct - a.pct);
+
   // Recent 5 Transactions
   const recentTransactions = transactions.slice(0, 5);
 
@@ -159,6 +172,8 @@ export const Dashboard: React.FC = () => {
       title: rem.title,
       body: `${currency}${rem.amount.toLocaleString('en-IN')} · ${rem.body}`,
       channel: rem.channel,
+      amount: rem.amount,
+      category: rem.category,
       actions: rem.channel === 'Bill Reminders' ? [
         { label: 'Mark Paid', isPrimary: true, actionId: 'mark-paid' },
         { label: 'Snooze', actionId: 'snooze' }
@@ -207,7 +222,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div 
-      className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-6 relative touch-none"
+      className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-6 relative touch-pan-y"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -330,6 +345,32 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Budget Warnings Banner (Rendered if any category limit is >= 90%) */}
+        {budgetAlerts.length > 0 && (
+          <div className="col-span-4 bg-accent-red/10 border border-accent-red/20 rounded-2xl p-4 flex items-center justify-between transition-all">
+            <div className="flex items-center space-x-3 text-left">
+              <div className="p-2.5 rounded-xl bg-accent-red/10 text-accent-red flex-shrink-0 animate-pulse">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[9px] text-accent-red font-bold uppercase tracking-wider font-body">Limit Warning</span>
+                <p className="text-[10px] text-text-primary leading-normal font-body font-medium">
+                  Warning: <span className="font-bold">{budgetAlerts[0].cat}</span> budget is at <span className="text-accent-red font-bold">{budgetAlerts[0].pct}%</span> of monthly limit.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setActiveTab('settings');
+                setSettingsActivePanel('budgets');
+              }}
+              className="text-[10px] font-bold text-accent-red hover:underline flex-shrink-0 cursor-pointer"
+            >
+              Adjust limits
+            </button>
+          </div>
+        )}
 
         {/* Card 2: Smart Insights Banner (4x1) */}
         <div className="col-span-4 h-[76px] bento-card flex items-center justify-between p-4 relative overflow-hidden">
@@ -454,117 +495,18 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 4: Budgets Health Card - Bento Half (2x1) */}
-        <div className="col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-2 text-left">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
-              Active Budgets
-            </span>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
-            >
-              Configure
-            </button>
-          </div>
-
-          {Object.keys(budgets).some(key => budgets[key] > 0) ? (
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
-              {Object.keys(budgets)
-                .filter((catName) => budgets[catName] > 0)
-                .slice(0, 2)
-                .map((catName) => {
-                  const limit = budgets[catName];
-                  const spent = categoryDataMap[catName] || 0;
-                  const pct = Math.min(100, (spent / limit) * 100);
-                  const isOver = spent > limit;
-                  return (
-                    <div key={catName} className="space-y-1">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-bold text-text-secondary truncate max-w-[60px]">{catName}</span>
-                        <span className="font-bold text-text-primary text-[9px]">
-                          {formatAmount(spent)} / <span className="text-text-subtle">{formatAmount(limit)}</span>
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            isOver ? 'bg-accent-red' : pct > 90 ? 'bg-accent-amber' : 'bg-accent-green'
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-1">
-              <p className="text-[9px] text-text-subtle font-medium leading-tight">
-                No monthly spending limits set.
-              </p>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className="px-2.5 py-0.5 bg-white/5 hover:bg-white/10 text-text-primary font-bold text-[8px] rounded-lg cursor-pointer transition-colors duration-150"
-              >
-                Set Budgets
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Card 5: Savings Targets - Bento Half (2x1) */}
-        <div className="col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
-          <div className="flex justify-between items-center mb-2 text-left">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body flex items-center space-x-1">
-              <Target className="w-3.5 h-3.5 text-accent-green" aria-hidden="true" />
-              <span>Savings Targets</span>
-            </span>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
-            >
-              Configure
-            </button>
-          </div>
-
-          {goals.length > 0 ? (
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
-              {goals.slice(0, 2).map((goal) => {
-                const pct = Math.min(100, Math.round((goal.currentSaved / goal.targetAmount) * 100));
-                return (
-                  <div key={goal.id} className="space-y-1">
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-text-secondary truncate max-w-[60px]">{goal.title}</span>
-                      <span className="font-bold text-text-primary text-[9px]">
-                        {pct}% ({currency}{goal.currentSaved.toLocaleString('en-IN', { maximumFractionDigits: 0 })})
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-accent-green-light to-accent-green"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <p className="text-[9px] text-text-subtle font-medium leading-tight">
-                No savings goals tracked yet.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Card 8: Recent Activities List - Bento Extra Large (4x2, full width) */}
-        <div className="col-span-4 row-span-2 bento-card flex flex-col justify-between p-4 overflow-hidden">
+        {/* Card 8: Recent Activities List - Bento Extra Large (4x2, full width) - Highlighted! */}
+        <div className="col-span-4 h-[290px] bento-card flex flex-col justify-between p-4 overflow-hidden border-l-2 border-l-accent-green">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-bold text-text-secondary uppercase tracking-wider font-body">
-              Recent Activities
-            </h2>
+            <div className="flex items-center space-x-2 text-left">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green"></span>
+              </span>
+              <h2 className="text-xs font-bold text-text-secondary uppercase tracking-wider font-body">
+                Recent Activities
+              </h2>
+            </div>
             {transactions.length > 5 && (
               <button
                 onClick={() => setActiveTab('transactions')}
@@ -655,6 +597,110 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Card 4: Budgets Health Card - Bento Half (col-span-4 sm:col-span-2) */}
+        <div className="col-span-4 sm:col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
+          <div className="flex justify-between items-center mb-2 text-left">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
+              Active Budgets
+            </span>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
+            >
+              Configure
+            </button>
+          </div>
+
+          {Object.keys(budgets).some(key => budgets[key] > 0) ? (
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
+              {Object.keys(budgets)
+                .filter((catName) => budgets[catName] > 0)
+                .slice(0, 2)
+                .map((catName) => {
+                  const limit = budgets[catName];
+                  const spent = categoryDataMap[catName] || 0;
+                  const pct = Math.min(100, (spent / limit) * 100);
+                  const isOver = spent > limit;
+                  return (
+                    <div key={catName} className="space-y-1">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-text-secondary truncate max-w-[80px]">{catName}</span>
+                        <span className="font-bold text-text-primary text-[9px]">
+                          {formatAmount(spent)} / <span className="text-text-subtle">{formatAmount(limit)}</span>
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            isOver ? 'bg-accent-red' : pct > 90 ? 'bg-accent-amber' : 'bg-accent-green'
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-1">
+              <p className="text-[9px] text-text-subtle font-medium leading-tight">
+                No monthly spending limits set.
+              </p>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className="px-2.5 py-0.5 bg-white/5 hover:bg-white/10 text-text-primary font-bold text-[8px] rounded-lg cursor-pointer transition-colors duration-150"
+              >
+                Set Budgets
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Card 5: Savings Targets - Bento Half (col-span-4 sm:col-span-2) */}
+        <div className="col-span-4 sm:col-span-2 h-[130px] bento-card flex flex-col justify-between p-4">
+          <div className="flex justify-between items-center mb-2 text-left">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body flex items-center space-x-1">
+              <Target className="w-3.5 h-3.5 text-accent-green" aria-hidden="true" />
+              <span>Savings Targets</span>
+            </span>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
+            >
+              Configure
+            </button>
+          </div>
+
+          {goals.length > 0 ? (
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pt-1 text-left">
+              {goals.slice(0, 2).map((goal) => {
+                const pct = Math.min(100, Math.round((goal.currentSaved / goal.targetAmount) * 100));
+                return (
+                  <div key={goal.id} className="space-y-1">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="font-bold text-text-secondary truncate max-w-[80px]">{goal.title}</span>
+                      <span className="font-bold text-text-primary text-[9px]">
+                        {pct}% ({currency}{goal.currentSaved.toLocaleString('en-IN', { maximumFractionDigits: 0 })})
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-accent-green-light to-accent-green"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <p className="text-[9px] text-text-subtle font-medium leading-tight">
+                No savings goals tracked yet.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
 
     </div>

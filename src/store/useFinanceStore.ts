@@ -49,6 +49,8 @@ interface FinanceState {
   budgets: { [category: string]: number };
   reminders: ReminderItem[];
   goals: SavingsGoal[];
+  settingsActivePanel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals';
+  setSettingsActivePanel: (panel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals') => void;
 
   // Actions
   init: () => Promise<void>;
@@ -107,6 +109,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   categories: [],
   initialized: false,
   activeTab: 'dashboard',
+  settingsActivePanel: 'none',
   selectedAccount: null,
   selectedTransaction: null,
 
@@ -266,6 +269,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
+  setSettingsActivePanel: (panel) => set({ settingsActivePanel: panel }),
   setSelectedAccount: (account) => set({ selectedAccount: account }),
   setSelectedTransaction: (transaction) => set({ selectedTransaction: transaction }),
 

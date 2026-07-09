@@ -23,6 +23,8 @@ export interface AndroidSimNotification {
   title: string;
   body: string;
   channel: 'Bill Reminders' | 'Loan Repayments' | 'Budget Alerts' | 'Backup Reminders';
+  amount?: number;
+  category?: string;
   actions?: Array<{
     label: string;
     isPrimary?: boolean;

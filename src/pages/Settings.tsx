@@ -36,12 +36,15 @@ export const Settings: React.FC = () => {
     setHideBalance,
     wipeAllData,
     accounts,
-    transactions
+    transactions,
+    settingsActivePanel,
+    setSettingsActivePanel
   } = useFinanceStore();
 
   const { showToast, showDialog } = useNotificationStore();
 
-  const [activePanel, setActivePanel] = useState<SubPanel>('none');
+  const activePanel = settingsActivePanel;
+  const setActivePanel = setSettingsActivePanel;
 
   // Categories states
   const [catType, setCatType] = useState<Category['type']>('expense');

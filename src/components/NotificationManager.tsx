@@ -165,7 +165,7 @@ export const BannerRenderer: React.FC<{ id: string }> = ({ id }) => {
  */
 export const AndroidNotificationShade: React.FC = () => {
   const { simulatedNotifications, dismissAndroidNotification, showToast } = useNotificationStore();
-  const { setActiveTab, addTransaction, accounts } = useFinanceStore();
+  const { setActiveTab, addTransaction, accounts, currency } = useFinanceStore();
 
   if (simulatedNotifications.length === 0) return null;
 
@@ -192,16 +192,20 @@ export const AndroidNotificationShade: React.FC = () => {
       // Simulate logging transaction in background
       const cashAcc = accounts.find((a) => a.type === 'Cash') || accounts[0];
       if (cashAcc) {
-        // Add Simulated transaction
+        // Read details dynamically from the notification object
+        const payAmount = notification.amount !== undefined ? notification.amount : 1240;
+        const payCategory = notification.category || 'Bills';
+        const payTitle = notification.title || 'Bill';
+
         await addTransaction({
           accountId: cashAcc.id,
           type: 'expense',
-          amount: 1240,
-          category: 'Bills',
+          amount: payAmount,
+          category: payCategory,
           date: new Date().toISOString().split('T')[0],
-          notes: 'Electricity Bill (Auto-logged from Push Action)'
+          notes: `${payTitle} (Auto-logged from Push Action)`
         });
-        showToast('Electricity bill marked as Paid (₹1,240)', 'success');
+        showToast(`${payTitle} marked as Paid (${currency}${payAmount.toLocaleString('en-IN')})`, 'success');
       } else {
         showToast('Failed to auto-log: No Cash/Default Account found', 'error');
       }
