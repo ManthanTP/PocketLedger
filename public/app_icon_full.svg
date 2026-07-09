@@ -1,6 +1,6 @@
 <svg
-  width="512"
-  height="512"
+  width="1024"
+  height="1024"
   viewBox="0 0 512 512"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,9 @@
     </filter>
   </defs>
 
+  <!-- Stylized Geometric P Logo Mark with glowing chart-arrow -->
   <g filter="url(#glow)">
+    <!-- Loop & Stem of the P -->
     <path
       d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
       stroke="url(#logo-gradient)"
@@ -26,6 +28,7 @@
       strokeLinejoin="round"
     />
     
+    <!-- Zigzag Chart Line ending in Arrow -->
     <path
       d="M 185 340 L 255 260 L 305 310 L 395 220"
       stroke="url(#logo-gradient)"
@@ -34,6 +37,7 @@
       strokeLinejoin="round"
     />
     
+    <!-- Arrow Head -->
     <path
       d="M 335 220 H 395 V 280"
       stroke="url(#logo-gradient)"
@@ -43,6 +47,7 @@
     />
   </g>
 
+  <!-- Mixed case App Name Wordmark -->
   <text
     x="256"
     y="440"

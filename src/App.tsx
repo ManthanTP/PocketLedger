@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFinanceStore } from './store/useFinanceStore';
 import { Onboarding } from './components/Onboarding';
 import { PINLock } from './components/PINLock';
 import { BottomNav } from './components/BottomNav';
 import { AddEntryModal } from './components/AddEntryModal';
+import { ToastContainer, AndroidNotificationShade } from './components/NotificationManager';
+import { AppIconFull } from './components/AppIcon';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -25,10 +27,22 @@ function App() {
     activeTab
   } = useFinanceStore();
 
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFade, setSplashFade] = useState(false);
+
   // Initialize DB and fetch states on mount
   useEffect(() => {
     init();
   }, [init]);
+
+  // Handle splash screen fade-out
+  useEffect(() => {
+    if (initialized) {
+      setSplashFade(true);
+      const timer = setTimeout(() => setShowSplash(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [initialized]);
 
   // Security auto-lock timeout tracking
   useEffect(() => {
@@ -56,16 +70,29 @@ function App() {
     };
   }, []);
 
-  // Show a full-screen premium spinner while loading DB
-  if (!initialized) {
+  // Show a full-screen premium splash screen while loading DB
+  if (showSplash) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-        <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-200 dark:border-indigo-950 animate-spin border-t-indigo-600 dark:border-t-indigo-500" />
+      <div 
+        className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg-base transition-opacity duration-300 ${
+          splashFade ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {/* Pulsing Aurora Glow behind splash logo */}
+        <div className="absolute w-72 h-72 rounded-full bg-accent-green/10 dark:bg-accent-green/5 blur-3xl pulse-biometric" aria-hidden="true" />
+        <div className="absolute w-72 h-72 rounded-full bg-accent-violet/10 dark:bg-accent-violet/5 blur-3xl pulse-biometric" aria-hidden="true" style={{ animationDelay: '1s' }} />
+
+        <div className="relative flex flex-col items-center space-y-6">
+          <AppIconFull size={120} className="pulse-biometric" />
+          <div className="text-center space-y-1">
+            <h1 className="text-lg font-bold tracking-widest text-text-primary font-display uppercase">
+              Pocket Ledger
+            </h1>
+            <p className="text-[10px] text-text-subtle uppercase tracking-widest font-semibold font-body">
+              Privacy-First Personal Finance
+            </p>
+          </div>
         </div>
-        <span className="mt-4 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase animate-pulse">
-          Pocket Ledger Loading
-        </span>
       </div>
     );
   }
@@ -101,23 +128,25 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300 antialiased">
+    <div className="min-h-screen bg-bg-base text-text-primary font-sans antialiased transition-colors duration-300">
       {/* Top banner warning if browser cookies/storage are disabled */}
       <noscript>
-        <div className="bg-rose-600 text-white text-xs font-bold py-2 px-4 flex items-center justify-center space-x-1">
+        <div className="bg-accent-red text-white text-xs font-bold py-2 px-4 flex items-center justify-center space-x-1">
           <ShieldAlert className="w-4 h-4" />
           <span>JavaScript is disabled. Pocket Ledger requires browser storage to work.</span>
         </div>
       </noscript>
 
-      {/* Main Panel Content Area */}
-      <main className="w-full">
+      {/* Main Content Area */}
+      <main className="w-full relative">
         {renderActiveTab()}
       </main>
 
-      {/* Add Modal and Navigation */}
+      {/* Add Modal, Navigation, and Global Notifications */}
       <AddEntryModal />
       <BottomNav />
+      <ToastContainer />
+      <AndroidNotificationShade />
     </div>
   );
 }

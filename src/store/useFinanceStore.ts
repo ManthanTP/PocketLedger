@@ -2,6 +2,24 @@ import { create } from 'zustand';
 import { db, initDB } from '../db/db';
 import type { Account, Transaction, Category } from '../db/db';
 
+export interface ReminderItem {
+  id: string;
+  title: string;
+  body: string;
+  amount: number;
+  category: string;
+  dayOfMonth: number;
+  channel: 'Bill Reminders' | 'Loan Repayments' | 'Budget Alerts' | 'Backup Reminders';
+}
+
+export interface SavingsGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentSaved: number;
+  targetDate: string;
+}
+
 interface FinanceState {
   accounts: Account[];
   transactions: Transaction[];
@@ -27,6 +45,9 @@ interface FinanceState {
   securityAnswer: string | null;
   autoLockTimeout: number; // in minutes (0 = immediate, -1 = never, etc.)
   hideBalance: boolean;
+  budgets: { [category: string]: number };
+  reminders: ReminderItem[];
+  goals: SavingsGoal[];
 
   // Actions
   init: () => Promise<void>;
@@ -35,6 +56,13 @@ interface FinanceState {
   setSelectedAccount: (account: Account | null) => void;
   setSelectedTransaction: (transaction: Transaction | null) => void;
   setHideBalance: (hide: boolean) => void;
+  setBudget: (category: string, limit: number) => void;
+  addReminder: (data: Omit<ReminderItem, 'id'>) => void;
+  updateReminder: (id: string, data: Omit<ReminderItem, 'id'>) => void;
+  deleteReminder: (id: string) => void;
+  addGoal: (data: Omit<SavingsGoal, 'id'>) => void;
+  updateGoal: (id: string, data: Omit<SavingsGoal, 'id'>) => void;
+  deleteGoal: (id: string) => void;
 
   // Account actions
   addAccount: (name: string, type: Account['type'], openingBalance: number) => Promise<void>;
@@ -94,6 +122,64 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   securityAnswer: localStorage.getItem('securityAnswer') || null,
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
+  budgets: JSON.parse(localStorage.getItem('budgets') || '{}'),
+  reminders: (() => {
+    const stored = localStorage.getItem('reminders');
+    if (stored) return JSON.parse(stored);
+    const defaults: ReminderItem[] = [
+      {
+        id: 'rem_1',
+        title: 'Electricity Bill Payment',
+        body: '₹1,240 · Electricity board renewal due soon',
+        amount: 1240,
+        category: 'Bills',
+        dayOfMonth: 10,
+        channel: 'Bill Reminders'
+      },
+      {
+        id: 'rem_2',
+        title: 'Car Loan Installment',
+        body: '₹12,500 · HDFC Auto Loan Debit',
+        amount: 12500,
+        category: 'Bills',
+        dayOfMonth: 5,
+        channel: 'Loan Repayments'
+      },
+      {
+        id: 'rem_3',
+        title: 'Netflix Subscription Renewal',
+        body: '₹649 · Netflix Premium 4K plan auto-renew',
+        amount: 649,
+        category: 'Entertainment',
+        dayOfMonth: 18,
+        channel: 'Bill Reminders'
+      }
+    ];
+    localStorage.setItem('reminders', JSON.stringify(defaults));
+    return defaults;
+  })(),
+  goals: (() => {
+    const stored = localStorage.getItem('goals');
+    if (stored) return JSON.parse(stored);
+    const defaults: SavingsGoal[] = [
+      {
+        id: 'goal_1',
+        title: 'Emergency Fund',
+        targetAmount: 200000,
+        currentSaved: 120000,
+        targetDate: '2026-12-31'
+      },
+      {
+        id: 'goal_2',
+        title: 'New Laptop',
+        targetAmount: 150000,
+        currentSaved: 45000,
+        targetDate: '2026-09-30'
+      }
+    ];
+    localStorage.setItem('goals', JSON.stringify(defaults));
+    return defaults;
+  })(),
 
   init: async () => {
     // 1. Init IndexedDB
@@ -420,5 +506,55 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     // Apply changes
     get().setTheme('system');
     await get().init();
+  },
+
+  setBudget: (category, limit) => {
+    const updated = { ...get().budgets, [category]: limit };
+    localStorage.setItem('budgets', JSON.stringify(updated));
+    set({ budgets: updated });
+  },
+
+  addReminder: (data) => {
+    const newRem = {
+      ...data,
+      id: 'rem_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+    };
+    const updated = [...get().reminders, newRem];
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    set({ reminders: updated });
+  },
+
+  updateReminder: (id, data) => {
+    const updated = get().reminders.map((r) => r.id === id ? { ...r, ...data } : r);
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    set({ reminders: updated });
+  },
+
+  deleteReminder: (id) => {
+    const updated = get().reminders.filter((r) => r.id !== id);
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    set({ reminders: updated });
+  },
+
+  addGoal: (data) => {
+    const newGoal = {
+      ...data,
+      id: 'goal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+    };
+    const updated = [...get().goals, newGoal];
+    localStorage.setItem('goals', JSON.stringify(updated));
+    set({ goals: updated });
+  },
+
+  updateGoal: (id, data) => {
+    const updated = get().goals.map((g) => g.id === id ? { ...g, ...data } : g);
+    localStorage.setItem('goals', JSON.stringify(updated));
+    set({ goals: updated });
+  },
+
+  deleteGoal: (id) => {
+    const updated = get().goals.filter((g) => g.id !== id);
+    localStorage.setItem('goals', JSON.stringify(updated));
+    set({ goals: updated });
   },
 }));

@@ -23,7 +23,11 @@ export const BottomNav: React.FC = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 pb-safe">
       {/* Background shadow & blur */}
-      <nav id="bottom-navigation" aria-label="Main Navigation" className="mx-auto max-w-lg glass-modal h-16 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_-8px_30px_rgb(0,0,0,0.2)] rounded-t-[24px] flex items-center justify-between px-4 transition-all duration-300">
+      <nav 
+        id="bottom-navigation" 
+        aria-label="Main Navigation" 
+        className="mx-auto max-w-lg glass-modal h-16 shadow-[0_-8px_32px_rgba(0,0,0,0.45)] rounded-t-[24px] flex items-center justify-between px-4 transition-all duration-300 border-t border-border-custom"
+      >
         
         {navItems.map((item) => {
           if (item.isFab) {
@@ -32,12 +36,12 @@ export const BottomNav: React.FC = () => {
                 <button
                   id="nav-tab-add"
                   onClick={() => openAddModal()}
-                  className="w-12.5 h-12.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(79,70,229,0.35)] dark:shadow-[0_4px_20px_rgba(99,102,241,0.25)] hover:scale-105 transition-all duration-200 cursor-pointer"
+                  className="w-12.5 h-12.5 rounded-2xl bg-accent-green text-bg-base flex items-center justify-center shadow-[0_4px_12px_rgba(16,185,129,0.25)] hover:scale-105 active:scale-98 transition-all duration-200 cursor-pointer"
                   aria-label="Add New Transaction"
                 >
                   <Plus className="w-6 h-6 stroke-[2.5]" />
                 </button>
-                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-1">
+                <span className="text-[10px] font-semibold text-text-subtle mt-1">
                   Add
                 </span>
               </div>
@@ -54,18 +58,23 @@ export const BottomNav: React.FC = () => {
               id={`nav-tab-${item.id}`}
               aria-label={`Navigate to ${item.label}`}
               onClick={() => setActiveTab(item.id as any)}
-              className={`flex-1 h-full flex flex-col items-center justify-center transition-all duration-200 cursor-pointer relative ${
+              className={`flex-1 h-full flex flex-col items-center justify-center transition-all duration-150 cursor-pointer relative ${
                 isActive 
-                  ? 'text-indigo-600 dark:text-indigo-400 scale-102' 
-                  : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400'
+                  ? 'text-accent-green scale-102 font-bold' 
+                  : 'text-text-subtle hover:text-text-secondary'
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-bold mt-1 tracking-wide">
+              <Icon className="w-5 h-5 transition-transform duration-150" />
+              <span className="text-[10px] font-medium mt-1 tracking-wide">
                 {item.label}
               </span>
               {isActive && (
-                <div className="absolute bottom-0 w-1.5 h-1.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
+                <div 
+                  className="absolute bottom-1 w-1.5 h-1.5 bg-accent-green rounded-full transition-all duration-200" 
+                  style={{
+                    boxShadow: '0 0 8px #10B981'
+                  }}
+                />
               )}
             </button>
           );
