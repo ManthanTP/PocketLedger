@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 
@@ -59,6 +59,9 @@ export const Settings: React.FC = () => {
 
   // Loading skeleton state
   const [loading, setLoading] = useState(true);
+
+  // User Guide interactive state
+  const [expandedStep, setExpandedStep] = useState<number | null>(1);
 
   // Reminders states
   const [editingReminder, setEditingReminder] = useState<any | null>(null);
@@ -1279,68 +1282,134 @@ export const Settings: React.FC = () => {
               <section id="settings-guide-panel" aria-labelledby="settings-title" className="bento-card text-left space-y-4">
                 <div className="space-y-1">
                   <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider font-body">Pocket Ledger User Guide</h2>
-                  <p className="text-[10px] text-text-subtle font-body">Quick steps to master all core personal finance features</p>
+                  <p className="text-[10px] text-text-subtle font-body">Interactive guide to master your offline finance features</p>
                 </div>
                 
-                <div className="space-y-3.5 max-h-[480px] overflow-y-auto no-scrollbar pr-1 divide-y divide-border-custom">
-                  <div className="space-y-1.5 pt-1">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">1</span>
-                      <span>Adding Transactions</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Tap the floating <strong className="text-text-primary">+</strong> button in the bottom navigation bar on any page. Select <strong>Income</strong>, <strong>Expense</strong>, or <strong>Transfer</strong>, input your amount, select the account/category, and tap <strong>Save</strong>.
-                    </p>
+                <div className="space-y-3.5 max-h-[480px] overflow-y-auto no-scrollbar pr-1">
+                  {/* Step 1 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 1 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 1 ? null : 1)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <Plus className="w-4 h-4" />
+                        </div>
+                        <span>1. Adding Transactions</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 1 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 1 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Tap the floating <strong className="text-text-primary">+</strong> button in the bottom navigation bar on any page. Select <strong>Income</strong>, <strong>Expense</strong>, or <strong>Transfer</strong>, input your amount, select the account/category, and tap <strong>Save</strong>.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-3.5">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">2</span>
-                      <span>Managing Wallets</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Navigate to the <strong>Accounts</strong> tab. Click <strong>Add Account</strong> to create custom wallets (e.g. Cash, HDFC Savings, Credit Card). You can tap any wallet to view its full transaction history, edit its details, or delete it.
-                    </p>
+                  {/* Step 2 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 2 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 2 ? null : 2)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <Wallet className="w-4 h-4" />
+                        </div>
+                        <span>2. Managing Wallets</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 2 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 2 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Navigate to the <strong>Accounts</strong> tab. Click <strong>Add Account</strong> to create custom wallets (e.g. Cash, HDFC Savings, Credit Card). You can tap any wallet to view its full transaction history, edit its details, or delete it.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-3.5">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">3</span>
-                      <span>Cash Flow & Analytics</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Use the <strong>Reports</strong> tab or the interactive charts on the Dashboard. Toggle between <strong>Cash Flow Trend</strong> (Bar Chart) and <strong>Expense Breakdown</strong> (Pie Chart + legends) to review category percentages.
-                    </p>
+                  {/* Step 3 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 3 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 3 ? null : 3)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <BarChart3 className="w-4 h-4" />
+                        </div>
+                        <span>3. Cash Flow & Analytics</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 3 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 3 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Use the <strong>Reports</strong> tab or the interactive charts on the Dashboard. Toggle between <strong>Cash Flow Trend</strong> (Bar Chart) and <strong>Expense Breakdown</strong> (Pie Chart + legends) to review category percentages.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-3.5">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">4</span>
-                      <span>Monthly Budgets & Alerts</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Configure spending limits in <strong>Settings &gt; Monthly Budgets</strong>. If category outflows reach <strong>90% or more</strong> of your set budget limit, an alert banner will appear at the top of your Dashboard with an <strong>Adjust limits</strong> link.
-                    </p>
+                  {/* Step 4 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 4 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 4 ? null : 4)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <AlertTriangle className="w-4 h-4" />
+                        </div>
+                        <span>4. Monthly Budgets & Alerts</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 4 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 4 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Configure spending limits in <strong>Settings &gt; Monthly Budgets</strong>. If category outflows reach <strong>90% or more</strong> of your set budget limit, an alert banner will appear at the top of your Dashboard with an <strong>Adjust limits</strong> link.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-3.5">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">5</span>
-                      <span>Notification Reminders</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Schedule recurring notifications in <strong>Settings &gt; Notification Reminders</strong>. Tap the Bell icon on the Dashboard to trigger mock pushes in the shade. Tap <strong>Mark Paid</strong> on a push reminder to auto-log that transaction.
-                    </p>
+                  {/* Step 5 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 5 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 5 ? null : 5)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <Bell className="w-4 h-4" />
+                        </div>
+                        <span>5. Notification Reminders</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 5 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 5 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Schedule recurring notifications in <strong>Settings &gt; Notification Reminders</strong>. Tap the Bell icon on the Dashboard to trigger mock pushes in the shade. Tap <strong>Mark Paid</strong> on a push reminder to auto-log that transaction.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5 pt-3.5">
-                    <h3 className="text-xs font-bold text-accent-green flex items-center space-x-1.5 m-0">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent-green/10 text-[10px] font-extrabold font-body">6</span>
-                      <span>App Security PIN & Biometrics</span>
-                    </h3>
-                    <p className="text-[10px] text-text-secondary leading-normal font-body">
-                      Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad (verifies instantly) or the interactive fingerprint scan simulation.
-                    </p>
+                  {/* Step 6 */}
+                  <div className={`border rounded-2xl p-3.5 transition-all duration-200 text-left ${expandedStep === 6 ? 'border-accent-green/30 bg-accent-green/5' : 'border-border-custom bg-transparent'}`}>
+                    <button
+                      onClick={() => setExpandedStep(expandedStep === 6 ? null : 6)}
+                      className="w-full flex items-center justify-between font-display text-xs font-bold text-text-primary cursor-pointer text-left focus:outline-none"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl flex-shrink-0">
+                          <Fingerprint className="w-4 h-4" />
+                        </div>
+                        <span>6. App Security PIN & Biometrics</span>
+                      </div>
+                      <span className="text-[10px] text-text-subtle font-body">{expandedStep === 6 ? 'Collapse' : 'Expand'}</span>
+                    </button>
+                    {expandedStep === 6 && (
+                      <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
+                        Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad (verifies instantly) or the interactive fingerprint scan simulation.
+                      </p>
+                    )}
                   </div>
                 </div>
               </section>

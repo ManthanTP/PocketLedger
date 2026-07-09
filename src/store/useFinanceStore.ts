@@ -128,70 +128,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   securityAnswer: localStorage.getItem('securityAnswer') || null,
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
-  budgets: (() => {
-    const stored = localStorage.getItem('budgets');
-    if (stored) return JSON.parse(stored);
-    const defaults = { Entertainment: 1000 };
-    localStorage.setItem('budgets', JSON.stringify(defaults));
-    return defaults;
-  })(),
-  reminders: (() => {
-    const stored = localStorage.getItem('reminders');
-    if (stored) return JSON.parse(stored);
-    const defaults: ReminderItem[] = [
-      {
-        id: 'rem_1',
-        title: 'Electricity Bill Payment',
-        body: '₹1,240 · Electricity board renewal due soon',
-        amount: 1240,
-        category: 'Bills',
-        dayOfMonth: 10,
-        channel: 'Bill Reminders'
-      },
-      {
-        id: 'rem_2',
-        title: 'Car Loan Installment',
-        body: '₹12,500 · HDFC Auto Loan Debit',
-        amount: 12500,
-        category: 'Bills',
-        dayOfMonth: 5,
-        channel: 'Loan Repayments'
-      },
-      {
-        id: 'rem_3',
-        title: 'Netflix Subscription Renewal',
-        body: '₹649 · Netflix Premium 4K plan auto-renew',
-        amount: 649,
-        category: 'Entertainment',
-        dayOfMonth: 18,
-        channel: 'Bill Reminders'
-      }
-    ];
-    localStorage.setItem('reminders', JSON.stringify(defaults));
-    return defaults;
-  })(),
-  goals: (() => {
-    const stored = localStorage.getItem('goals');
-    if (stored) return JSON.parse(stored);
-    const defaults: SavingsGoal[] = [
-      {
-        id: 'goal_1',
-        title: 'Emergency Fund',
-        targetAmount: 200000,
-        currentSaved: 120000,
-        targetDate: '2026-12-31'
-      },
-      {
-        id: 'goal_2',
-        title: 'New Laptop',
-        targetAmount: 150000,
-        currentSaved: 45000,
-        targetDate: '2026-09-30'
-      }
-    ];
-    localStorage.setItem('goals', JSON.stringify(defaults));
-    return defaults;
-  })(),
+  budgets: JSON.parse(localStorage.getItem('budgets') || '{}'),
+  reminders: JSON.parse(localStorage.getItem('reminders') || '[]'),
+  goals: JSON.parse(localStorage.getItem('goals') || '[]'),
 
   init: async () => {
     // 1. Init IndexedDB
@@ -225,25 +164,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
       for (const cat of defaultCategories) {
         await db.saveCategory(cat);
-      }
-    }
-
-    // Seed default Entertainment transaction of 920 if empty for demo
-    const dbAccounts = await db.getAccounts();
-    if (dbAccounts.length > 0) {
-      const dbTxs = await db.getTransactions();
-      if (dbTxs.length === 0) {
-        const cashAcc = dbAccounts[0];
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        await get().addTransaction({
-          accountId: cashAcc.id,
-          type: 'expense',
-          amount: 920,
-          category: 'Entertainment',
-          date: dateStr,
-          notes: 'Movies & Drinks'
-        });
       }
     }
 

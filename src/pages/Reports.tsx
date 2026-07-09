@@ -9,7 +9,7 @@ import { AppIconFull } from '../components/AppIcon';
 
 export const Reports: React.FC = () => {
   const { transactions, accounts, currency, hideBalance, budgets } = useFinanceStore();
-  const { showToast, showBanner } = useNotificationStore();
+  const { showToast } = useNotificationStore();
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
 
   // 1. Loading Skeleton state
@@ -44,20 +44,6 @@ export const Reports: React.FC = () => {
     const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, [period]);
-
-  // Trigger persistent budget banner alert on mount
-  useEffect(() => {
-    showBanner(
-      'reports-budget-alert',
-      'Warning: Entertainment budget is at 92% of monthly limit',
-      'warning',
-      'Adjust limits',
-      () => {
-        showToast('Budget settings opened', 'info');
-      },
-      true
-    );
-  }, [showBanner]);
 
   // 2. Filter transactions by period
   const filteredTxs = transactions.filter((tx) => {
