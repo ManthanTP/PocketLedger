@@ -61,7 +61,7 @@ function App() {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
         <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-200 dark:border-indigo-950 animate-spin border-t-indigo-650 dark:border-t-indigo-500" />
+          <div className="w-12 h-12 rounded-full border-4 border-indigo-200 dark:border-indigo-950 animate-spin border-t-indigo-600 dark:border-t-indigo-500" />
         </div>
         <span className="mt-4 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase animate-pulse">
           Pocket Ledger Loading

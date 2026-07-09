@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { X, Calendar, FileText, ArrowRightLeft, TrendingUp, TrendingDown } from 'lucide-react';
 
-
 export const AddEntryModal: React.FC = () => {
   const {
     accounts,
@@ -168,63 +167,74 @@ export const AddEntryModal: React.FC = () => {
   const filteredCategories = categories.filter(c => c.type === (activeTab === 'transfer' ? 'expense' : activeTab));
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 backdrop-blur-xs transition-opacity duration-300">
+    <div className="fixed inset-0 z-45 flex items-end justify-center bg-black/50 backdrop-blur-xs transition-opacity duration-300">
       
       {/* Tap outside to close backdrop */}
-      <div className="absolute inset-0" onClick={closeAddModal} />
+      <div className="absolute inset-0" onClick={closeAddModal} aria-hidden="true" />
 
       {/* Slide-up Container */}
-      <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-[28px] shadow-2xl z-50 border-t border-slate-100 dark:border-slate-700/50 flex flex-col max-h-[92vh] overflow-hidden transition-all duration-300 animate-slide-up">
+      <section className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-[28px] shadow-2xl z-50 border-t border-slate-100 dark:border-slate-700/50 flex flex-col max-h-[92vh] overflow-hidden transition-all duration-300 animate-slide-up" aria-labelledby="add-entry-title">
         
-        {/* Drag handle / Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700/50">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700/50">
+          <h1 id="add-entry-title" className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
             {selectedTransaction ? 'Edit Transaction' : 'New Transaction'}
-          </h3>
+          </h1>
           <button
+            id="add-entry-close-btn"
             onClick={closeAddModal}
-            className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 cursor-pointer"
+            aria-label="Close modal"
+            className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </header>
 
         <form onSubmit={handleSave} className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
           
           {/* Tabs */}
           {!selectedTransaction && (
-            <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl" role="tablist" aria-label="Transaction Type">
               <button
+                id="add-entry-tab-expense"
                 type="button"
+                role="tab"
+                aria-selected={activeTab === 'expense'}
                 onClick={() => setActiveTab('expense')}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px] ${
                   activeTab === 'expense'
                     ? 'bg-white dark:bg-slate-800 text-rose-500 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingDown className="w-4 h-4" />
                 <span>Expense</span>
               </button>
               <button
+                id="add-entry-tab-income"
                 type="button"
+                role="tab"
+                aria-selected={activeTab === 'income'}
                 onClick={() => setActiveTab('income')}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px] ${
                   activeTab === 'income'
                     ? 'bg-white dark:bg-slate-800 text-green-500 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 <TrendingUp className="w-4 h-4" />
                 <span>Income</span>
               </button>
               <button
+                id="add-entry-tab-transfer"
                 type="button"
+                role="tab"
+                aria-selected={activeTab === 'transfer'}
                 onClick={() => setActiveTab('transfer')}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer min-h-[44px] ${
                   activeTab === 'transfer'
                     ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 <ArrowRightLeft className="w-4 h-4" />
@@ -235,12 +245,13 @@ export const AddEntryModal: React.FC = () => {
 
           {/* Amount input */}
           <div className="text-center space-y-1">
-            <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+            <label htmlFor="add-entry-amount-input" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
               Amount ({currency})
             </label>
             <div className="flex items-center justify-center text-4xl font-extrabold text-slate-800 dark:text-slate-100">
-              <span className="mr-1 text-slate-400 dark:text-slate-500">{currency}</span>
+              <span className="mr-1 text-slate-400 dark:text-slate-500" aria-hidden="true">{currency}</span>
               <input
+                id="add-entry-amount-input"
                 type="number"
                 step="any"
                 inputMode="decimal"
@@ -249,11 +260,11 @@ export const AddEntryModal: React.FC = () => {
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-48 text-center bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none placeholder-slate-300 dark:placeholder-slate-700 py-1"
+                className="w-48 text-center bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none placeholder-slate-300 dark:placeholder-slate-700 py-1 min-h-[44px]"
               />
             </div>
             {warning && (
-              <p className="text-rose-500 text-[11px] font-semibold mt-1">
+              <p className="text-rose-500 text-[11px] font-semibold mt-1" role="alert">
                 {warning}
               </p>
             )}
@@ -264,13 +275,14 @@ export const AddEntryModal: React.FC = () => {
             {activeTab === 'transfer' ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                  <label htmlFor="add-entry-from-account-select" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                     From Account
                   </label>
                   <select
+                    id="add-entry-from-account-select"
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-150 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
                     <option value="" disabled>Select Source</option>
                     {accounts.map(acc => (
@@ -281,13 +293,14 @@ export const AddEntryModal: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                  <label htmlFor="add-entry-to-account-select" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                     To Account
                   </label>
                   <select
+                    id="add-entry-to-account-select"
                     value={toAccountId}
                     onChange={(e) => setToAccountId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-150 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
                     <option value="" disabled>Select Destination</option>
                     {accounts.map(acc => (
@@ -300,13 +313,14 @@ export const AddEntryModal: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="add-entry-account-select" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Account
                 </label>
                 <select
+                  id="add-entry-account-select"
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-150 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="" disabled>Select Account</option>
                   {accounts.map(acc => (
@@ -322,21 +336,23 @@ export const AddEntryModal: React.FC = () => {
           {/* Category Chip Selector (Income & Expenses only) */}
           {activeTab !== 'transfer' && (
             <div className="space-y-1.5">
-              <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                 Category
-              </label>
-              <div className="flex overflow-x-auto py-2 px-1 gap-2 no-scrollbar scroll-smooth">
+              </span>
+              <div className="flex overflow-x-auto py-2 px-1 gap-2 no-scrollbar scroll-smooth" role="group" aria-label="Select category">
                 {filteredCategories.map((cat) => {
                   const isSelected = category === cat.name;
                   return (
                     <button
                       key={cat.id}
+                      id={`add-entry-category-${cat.name}`}
                       type="button"
+                      aria-pressed={isSelected}
                       onClick={() => setCategory(cat.name)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-2xl text-xs font-bold border transition cursor-pointer ${
+                      className={`flex-shrink-0 min-h-[44px] px-4 py-2 rounded-2xl text-xs font-bold border transition cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-600 dark:bg-indigo-500 border-indigo-600 dark:border-indigo-500 text-white shadow-sm'
-                          : 'bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-750 text-slate-600 dark:text-slate-350'
+                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                       }`}
                     >
                       {cat.name}
@@ -350,30 +366,32 @@ export const AddEntryModal: React.FC = () => {
           {/* Date & Notes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide flex items-center space-x-1.5">
-                <Calendar className="w-3.5 h-3.5" />
+              <label htmlFor="add-entry-date-input" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide flex items-center space-x-1.5">
+                <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Date</span>
               </label>
               <input
+                id="add-entry-date-input"
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-755 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide flex items-center space-x-1.5">
-                <FileText className="w-3.5 h-3.5" />
+              <label htmlFor="add-entry-notes-input" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide flex items-center space-x-1.5">
+                <FileText className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Notes (Optional)</span>
               </label>
               <input
+                id="add-entry-notes-input"
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Details, bill ref, merchant name..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-755 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
               />
             </div>
           </div>
@@ -383,23 +401,26 @@ export const AddEntryModal: React.FC = () => {
             {selectedTransaction ? (
               <>
                 <button
+                  id="add-entry-delete-btn"
                   type="button"
                   onClick={handleDelete}
-                  className="px-4 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 text-rose-600 dark:text-rose-455 font-bold text-sm shadow-sm transition flex-shrink-0 cursor-pointer"
+                  className="px-4 py-3 min-h-[44px] rounded-2xl bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 text-rose-600 dark:text-rose-400 font-bold text-sm shadow-sm transition flex-shrink-0 cursor-pointer"
                 >
                   Delete
                 </button>
                 <button
+                  id="add-entry-submit-btn"
                   type="submit"
-                  className="flex-1 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition cursor-pointer"
+                  className="flex-1 py-3 min-h-[44px] rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition cursor-pointer"
                 >
                   Save Changes
                 </button>
               </>
             ) : (
               <button
+                id="add-entry-submit-btn"
                 type="submit"
-                className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition cursor-pointer"
+                className="w-full py-3.5 min-h-[44px] rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition cursor-pointer"
               >
                 Log Transaction
               </button>
@@ -407,7 +428,7 @@ export const AddEntryModal: React.FC = () => {
           </div>
 
         </form>
-      </div>
+      </section>
     </div>
   );
 };

@@ -172,45 +172,49 @@ export const Reports: React.FC = () => {
     <div className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-6 transition-all duration-300">
       
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <header className="flex justify-between items-center">
         <div>
           <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
             Pocket Ledger
           </span>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
+          <h1 id="reports-title" className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
             Reports & Analytics
-          </h2>
+          </h1>
         </div>
         <button
+          id="reports-export-csv-btn"
           onClick={handleExportCSV}
-          className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-650 dark:text-indigo-400 hover:bg-indigo-100 hover:scale-101 text-xs font-bold shadow-xs cursor-pointer transition-all"
+          aria-label="Export report as CSV spreadsheet"
+          className="inline-flex items-center space-x-1.5 px-4 py-2.5 min-h-[44px] rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:scale-101 text-xs font-bold shadow-xs cursor-pointer transition-all"
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4" aria-hidden="true" />
           <span>Export CSV</span>
         </button>
-      </div>
+      </header>
 
       {/* Period Selector Tabs */}
-      <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
+      <nav aria-label="Period selector" className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
         {(['week', 'month', 'year'] as const).map((p) => (
           <button
             key={p}
+            id={`reports-period-${p}`}
             onClick={() => setPeriod(p)}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+            aria-current={period === p ? 'page' : undefined}
+            className={`flex-1 py-2.5 min-h-[44px] rounded-xl text-xs font-bold transition cursor-pointer ${
               period === p
                 ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                : 'text-slate-550 hover:text-slate-750 dark:text-slate-450 dark:hover:text-slate-200'
+                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
             {p === 'week' ? 'Weekly' : p === 'month' ? 'Monthly' : 'Yearly'}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Summary Dashboard Block */}
-      <div className="glass-panel rounded-3xl p-5 shadow-xs grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-750/30">
+      <section aria-label="Flow aggregates" className="glass-panel rounded-3xl p-5 shadow-xs grid grid-cols-3 gap-2 text-center divide-x divide-slate-100 dark:divide-slate-700/30">
         <div>
-          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider block">
+          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
             Total Inflow
           </span>
           <span className="text-xs font-extrabold text-green-600 dark:text-green-400 mt-1 block">
@@ -218,7 +222,7 @@ export const Reports: React.FC = () => {
           </span>
         </div>
         <div>
-          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider block">
+          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
             Total Outflow
           </span>
           <span className="text-xs font-extrabold text-rose-500 mt-1 block">
@@ -226,22 +230,22 @@ export const Reports: React.FC = () => {
           </span>
         </div>
         <div>
-          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider block">
+          <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
             Net Balance
           </span>
-          <span className={`text-xs font-extrabold mt-1 block ${netFlow >= 0 ? 'text-green-650 dark:text-green-400' : 'text-rose-500'}`}>
+          <span className={`text-xs font-extrabold mt-1 block ${netFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-rose-500'}`}>
             {formatAmount(netFlow)}
           </span>
         </div>
-      </div>
+      </section>
 
       {/* Area Line Trend Chart */}
       {filteredTxs.length > 0 && (
-        <div className="glass-panel rounded-3xl p-5 shadow-xs">
-          <h4 className="text-xs font-bold text-slate-750 dark:text-slate-300 mb-3 text-left">
+        <section id="reports-trend-section" aria-labelledby="trend-title" className="glass-panel rounded-3xl p-5 shadow-xs">
+          <h2 id="trend-title" className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 text-left">
             Inflow vs Outflow Trend
-          </h4>
-          <div className="h-44 w-full">
+          </h2>
+          <div className="h-44 w-full" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <defs>
@@ -262,14 +266,14 @@ export const Reports: React.FC = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Expense Category Breakdown Progress Bars */}
-      <div className="space-y-4">
-        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider text-left">
+      <section id="reports-category-section" aria-labelledby="category-breakdown-title" className="space-y-4">
+        <h2 id="category-breakdown-title" className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider text-left">
           Expense Category Breakdown
-        </h4>
+        </h2>
 
         {sortedCategories.length > 0 ? (
           <div className="glass-panel rounded-3xl p-5 shadow-xs space-y-4.5">
@@ -277,9 +281,9 @@ export const Reports: React.FC = () => {
               const pct = (cat.amount / maxCategoryAmount) * 100;
               
               return (
-                <div key={index} className="space-y-1 text-left">
+                <article key={index} className="space-y-1 text-left">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-750 dark:text-slate-200">
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
                       {cat.name}
                     </span>
                     <span className="font-extrabold text-slate-800 dark:text-slate-100">
@@ -293,7 +297,7 @@ export const Reports: React.FC = () => {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
@@ -302,7 +306,7 @@ export const Reports: React.FC = () => {
             No expenses logged during this period.
           </div>
         )}
-      </div>
+      </section>
 
     </div>
   );

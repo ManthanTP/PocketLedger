@@ -99,20 +99,20 @@ export const PINLock: React.FC = () => {
       <div className={`w-full max-w-sm flex flex-col items-center justify-between min-h-[80vh] py-8 ${shake ? 'animate-bounce' : ''}`}>
         
         {/* Header Section */}
-        <div className="flex flex-col items-center mt-6 text-center">
-          <div className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-3xl text-indigo-600 dark:text-indigo-400 mb-4 shadow-sm">
+        <header className="flex flex-col items-center mt-6 text-center">
+          <div className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-3xl text-indigo-600 dark:text-indigo-500 mb-4 shadow-sm">
             <Lock className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+          <h1 id="pin-lock-title" className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
             Pocket Ledger Locked
-          </h2>
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-[240px]">
             Enter PIN to secure your financial records
           </p>
-        </div>
+        </header>
 
         {/* PIN Indicators */}
-        <div className="my-8 flex flex-col items-center w-full">
+        <section className="my-8 flex flex-col items-center w-full" aria-label="PIN Input State">
           <div className="flex space-x-4 mb-4">
             {[...Array(6)].map((_, i) => (
               <div
@@ -125,7 +125,7 @@ export const PINLock: React.FC = () => {
               />
             ))}
           </div>
-          <div className="h-6">
+          <div className="h-6" role="alert">
             {error && (
               <div className="flex items-center text-rose-500 text-xs font-medium space-x-1">
                 <AlertCircle className="w-3.5 h-3.5" />
@@ -133,58 +133,67 @@ export const PINLock: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Keypad */}
-        <div className="w-full grid grid-cols-3 gap-y-4 gap-x-6 px-6">
+        <section className="w-full grid grid-cols-3 gap-y-4 gap-x-6 px-6" aria-label="Keypad input">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
             <button
               key={num}
+              id={`pin-key-${num}`}
+              aria-label={`Digit ${num}`}
               onClick={() => handleKeyPress(num)}
-              className="key-press h-16 rounded-full flex items-center justify-center text-xl font-semibold bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-750 transition-all cursor-pointer"
+              className="key-press h-16 rounded-full flex items-center justify-center text-xl font-semibold bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
             >
               {num}
             </button>
           ))}
           <button
+            id="pin-key-biometric"
+            aria-label="Unlock with fingerprint biometric scan"
             onClick={handleBiometricClick}
-            className="key-press h-16 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all cursor-pointer"
+            className="key-press h-16 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-55 dark:hover:bg-indigo-950/20 transition-all cursor-pointer"
           >
             <Fingerprint className="w-6 h-6 pulse-biometric" />
           </button>
           <button
+            id="pin-key-0"
+            aria-label="Digit 0"
             onClick={() => handleKeyPress('0')}
-            className="key-press h-16 rounded-full flex items-center justify-center text-xl font-semibold bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-750 transition-all cursor-pointer"
+            className="key-press h-16 rounded-full flex items-center justify-center text-xl font-semibold bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
           >
             0
           </button>
           <button
+            id="pin-key-backspace"
+            aria-label="Backspace"
             onClick={handleBackspace}
-            className="key-press h-16 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800/30 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-750 transition-all cursor-pointer"
+            className="key-press h-16 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800/30 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
           >
             <Delete className="w-5 h-5" />
           </button>
-        </div>
+        </section>
 
         {/* Forgot PIN Flow Link */}
-        <div className="mt-8">
+        <footer className="mt-8">
           <button
+            id="forgot-pin-btn"
             onClick={() => setIsRecovering(true)}
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1 cursor-pointer"
+            className="min-h-[44px] px-4 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1 cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Forgot PIN? Recover Data</span>
           </button>
-        </div>
+        </footer>
       </div>
 
       {/* Recovery Modal */}
       {isRecovering && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-700/50">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
               Recover / Reset Pocket Ledger
-            </h3>
+            </h2>
             
             {securityQuestion ? (
               <form onSubmit={handleRecoverySubmit} className="mt-4 space-y-4">
@@ -197,16 +206,17 @@ export const PINLock: React.FC = () => {
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-400 dark:text-slate-500 uppercase font-semibold">
+                  <label htmlFor="recovery-answer-input" className="text-xs text-slate-400 dark:text-slate-500 uppercase font-semibold">
                     Your Answer
                   </label>
                   <input
+                    id="recovery-answer-input"
                     type="text"
                     required
                     value={recoveryAnswer}
                     onChange={(e) => setRecoveryAnswer(e.target.value)}
                     placeholder="Enter the answer you set"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   {recoveryError && (
                     <p className="text-xs text-rose-500 font-medium mt-1">
@@ -217,19 +227,21 @@ export const PINLock: React.FC = () => {
                 
                 <div className="flex space-x-3 pt-2">
                   <button
+                    id="recovery-cancel-btn"
                     type="button"
                     onClick={() => {
                       setIsRecovering(false);
                       setRecoveryAnswer('');
                       setRecoveryError(false);
                     }}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-750 transition cursor-pointer"
+                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
+                    id="recovery-verify-btn"
                     type="submit"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition cursor-pointer"
+                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition cursor-pointer"
                   >
                     Verify Answer
                   </button>
@@ -246,32 +258,35 @@ export const PINLock: React.FC = () => {
             <div className="border-t border-slate-100 dark:border-slate-700/50 my-6" />
 
             <div className="space-y-3">
-              <h4 className="text-sm font-bold text-rose-500 flex items-center space-x-1">
+              <h3 className="text-sm font-bold text-rose-500 flex items-center space-x-1">
                 <AlertCircle className="w-4 h-4" />
                 <span>Danger Zone</span>
-              </h4>
+              </h3>
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 Forgotten everything? Wiping data resets the database, allowing you to start fresh as a new user.
               </p>
               {showWipeConfirm ? (
                 <div className="flex space-x-3 pt-2">
                   <button
+                    id="wipe-cancel-btn"
                     onClick={() => setShowWipeConfirm(false)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                    className="flex-1 min-h-[44px] px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
                   >
                     No, Cancel
                   </button>
                   <button
+                    id="wipe-confirm-btn"
                     onClick={handleWipeData}
-                    className="flex-1 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm cursor-pointer"
+                    className="flex-1 min-h-[44px] px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm cursor-pointer"
                   >
                     Yes, Wipe Everything
                   </button>
                 </div>
               ) : (
                 <button
+                  id="wipe-reset-btn"
                   onClick={() => setShowWipeConfirm(true)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-950 text-rose-600 dark:text-rose-400 text-sm font-medium hover:bg-rose-50 dark:hover:bg-rose-950/20 transition cursor-pointer"
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-950 text-rose-600 dark:text-rose-400 text-sm font-medium hover:bg-rose-50 dark:hover:bg-rose-950/20 transition cursor-pointer"
                 >
                   Wipe & Reset App
                 </button>

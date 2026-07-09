@@ -29,18 +29,18 @@ export const CashBook: React.FC = () => {
   if (!cashAccount) {
     return (
       <div className="pb-24 pt-6 px-4 max-w-lg mx-auto text-center space-y-6">
-        <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-500 flex items-center justify-center mx-auto">
+        <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-500 flex items-center justify-center mx-auto" aria-hidden="true">
           <Coins className="w-8 h-8" />
         </div>
-        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           No Cash Account Found
-        </h3>
-        <p className="text-xs text-slate-450 dark:text-slate-500 max-w-xs mx-auto">
+        </h1>
+        <p className="text-xs text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
           The Cash Book requires an account of type "Cash" to track physical money.
         </p>
         <button
           onClick={() => setActiveTab('accounts')}
-          className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md cursor-pointer"
+          className="min-h-[44px] px-5 py-2.5 rounded-2xl bg-indigo-605 hover:bg-indigo-700 text-white text-xs font-bold shadow-md cursor-pointer"
         >
           Go to Accounts
         </button>
@@ -136,47 +136,49 @@ export const CashBook: React.FC = () => {
     <div className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-6 transition-all duration-300">
       
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <header id="cashbook-header" className="flex justify-between items-center">
         <button
+          id="cashbook-back-btn"
           onClick={() => setActiveTab('dashboard')}
-          className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-850 cursor-pointer"
+          aria-label="Back to dashboard"
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           Cash Book Ledger
-        </h3>
-        <div className="w-9 h-9" /> {/* Spacer */}
-      </div>
+        </h1>
+        <div className="w-9 h-9" aria-hidden="true" />
+      </header>
 
       {/* Today's Cash Outflow & Closing balance */}
-      <div className="grid grid-cols-2 gap-4">
+      <section aria-label="Daily cash overview" className="grid grid-cols-2 gap-4">
         {/* Cash Used Today Card */}
         <div className="glass-panel rounded-3xl p-5 text-center shadow-xs">
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
             Cash Spent Today
           </span>
-          <h3 className="text-2xl font-extrabold text-rose-500 tracking-tight mt-1">
+          <h2 className="text-2xl font-extrabold text-rose-500 tracking-tight mt-1">
             {formatAmount(todayCashSpent)}
-          </h3>
+          </h2>
         </div>
 
         {/* Closing Balance Card */}
-        <div className="glass-panel rounded-3xl p-5 text-center shadow-xs">
+        <div id="cashbook-closing-card" className="glass-panel rounded-3xl p-5 text-center shadow-xs">
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
             Closing Cash Balance
           </span>
-          <h3 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mt-1">
+          <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mt-1">
             {formatAmount(cashAccount.currentBalance)}
-          </h3>
+          </h2>
         </div>
-      </div>
+      </section>
 
       {/* Daily Records List */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider text-left">
+      <section id="cashbook-records-section" aria-labelledby="daily-records-title" className="space-y-3">
+        <h2 id="daily-records-title" className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider text-left">
           Daily Records
-        </h4>
+        </h2>
 
         {summariesList.length > 0 ? (
           <div className="space-y-3">
@@ -185,17 +187,26 @@ export const CashBook: React.FC = () => {
               const dateObj = new Date(day.date);
               
               return (
-                <div
+                <article
                   key={day.date}
-                  className="glass-panel rounded-2xl overflow-hidden shadow-xs border border-slate-200/50 dark:border-slate-850"
+                  className="glass-panel rounded-2xl overflow-hidden shadow-xs border border-slate-200/50 dark:border-slate-800"
                 >
                   {/* Summary Bar */}
                   <div
                     onClick={() => toggleDate(day.date)}
-                    className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-750/15 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
+                    aria-label={`Show cash transactions for ${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        toggleDate(day.date);
+                      }
+                    }}
+                    className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-700/15 cursor-pointer"
                   >
                     <div className="text-left">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-205">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
                       <div className="flex space-x-2 text-[10px] mt-0.5 font-bold">
@@ -214,9 +225,9 @@ export const CashBook: React.FC = () => {
                         </span>
                       </div>
                       {isExpanded ? (
-                        <ChevronUp className="w-4 h-4 text-slate-400" />
+                        <ChevronUp className="w-4 h-4 text-slate-400" aria-hidden="true" />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-4 h-4 text-slate-400" aria-hidden="true" />
                       )}
                     </div>
                   </div>
@@ -234,6 +245,14 @@ export const CashBook: React.FC = () => {
                           <div
                             key={tx.id}
                             onClick={() => handleTxClick(tx)}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Transaction details: ${tx.category || 'Transfer'} of ${formatAmount(tx.amount)}`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                handleTxClick(tx);
+                              }
+                            }}
                             className="flex items-center justify-between p-3.5 pl-6 hover:bg-slate-100/40 dark:hover:bg-slate-800/10 cursor-pointer text-xs transition"
                           >
                             <div className="text-left min-w-0">
@@ -264,7 +283,7 @@ export const CashBook: React.FC = () => {
                       })}
                     </div>
                   )}
-                </div>
+                </article>
               );
             })}
           </div>
@@ -273,12 +292,13 @@ export const CashBook: React.FC = () => {
             No physical cash transactions logged yet.
           </div>
         )}
-      </div>
+      </section>
 
       {/* Floating Plus button for Cash Book */}
       <button
+        id="cashbook-fab-add"
         onClick={() => openAddModal(cashAccount.id, 'expense')}
-        className="fixed bottom-20 right-4 z-20 w-11 h-11 rounded-full bg-indigo-650 dark:bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition cursor-pointer"
+        className="fixed bottom-20 right-4 z-20 w-12.5 h-12.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition cursor-pointer"
         aria-label="Log Cash Expense"
       >
         <Plus className="w-5 h-5" />

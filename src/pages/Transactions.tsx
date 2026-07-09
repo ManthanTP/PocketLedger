@@ -87,57 +87,65 @@ export const Transactions: React.FC = () => {
     <div className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-5 transition-all duration-300">
       
       {/* Page Header */}
-      <div className="flex justify-between items-center">
+      <header className="flex justify-between items-center">
         <div>
-          <span className="text-xs font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wide">
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
             Pocket Ledger
           </span>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
+          <h1 id="transactions-title" className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
             Transaction Ledger
-          </h2>
+          </h1>
         </div>
         <button
+          id="tx-filters-toggle-btn"
           onClick={() => setShowFiltersPanel(!showFiltersPanel)}
-          className={`p-2.5 rounded-2xl border transition-all cursor-pointer ${
+          aria-expanded={showFiltersPanel}
+          aria-label="Toggle advanced filters panel"
+          className={`p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl border transition-all cursor-pointer ${
             showFiltersPanel || filterType !== 'all' || filterAccount !== 'all' || filterCategory !== 'all'
-              ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800 text-indigo-650 dark:text-indigo-400'
+              ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400'
               : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700/50 text-slate-400 hover:text-slate-700'
           }`}
         >
           <SlidersHorizontal className="w-4.5 h-4.5" />
         </button>
-      </div>
+      </header>
 
       {/* Search Input */}
-      <div className="relative">
+      <section aria-label="Search Bar" className="relative">
+        <label htmlFor="tx-search-input" className="sr-only">Search transactions</label>
         <input
+          id="tx-search-input"
           type="text"
           placeholder="Search by note, category or amount..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 dark:border-slate-755 bg-white dark:bg-slate-850 text-slate-800 dark:text-slate-100 text-xs focus:outline-none"
+          className="w-full min-h-[44px] pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:outline-none"
         />
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" aria-hidden="true" />
         {search && (
           <button
+            id="tx-search-clear-btn"
             onClick={() => setSearch('')}
-            className="absolute right-3 top-3 text-slate-400 hover:text-slate-650 cursor-pointer"
+            aria-label="Clear search input"
+            className="absolute right-2 top-1.5 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
         )}
-      </div>
+      </section>
 
       {/* Advanced Filters Panel */}
       {showFiltersPanel && (
-        <div className="glass-panel rounded-2xl p-4 shadow-sm space-y-4 border border-slate-200/50 dark:border-slate-750">
+        <section id="tx-filters-panel" aria-labelledby="filters-title" className="glass-panel rounded-2xl p-4 shadow-sm space-y-4 border border-slate-200/50 dark:border-slate-700">
           <div className="flex justify-between items-center">
-            <h4 className="text-xs font-bold text-slate-750 dark:text-slate-300">
+            <h2 id="filters-title" className="text-xs font-bold text-slate-700 dark:text-slate-300">
               Advanced Filters
-            </h4>
+            </h2>
             <button
+              id="tx-filters-clear-btn"
               onClick={clearFilters}
-              className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer min-h-[32px]"
             >
               Clear Filters
             </button>
@@ -146,13 +154,14 @@ export const Transactions: React.FC = () => {
           <div className="grid grid-cols-3 gap-2">
             {/* Filter Type */}
             <div className="space-y-1">
-              <label className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
+              <label htmlFor="tx-filter-type-select" className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
                 Type
               </label>
               <select
+                id="tx-filter-type-select"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value as any)}
-                className="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-305 text-[10px] focus:outline-none"
+                className="w-full min-h-[40px] p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] focus:outline-none"
               >
                 <option value="all">All</option>
                 <option value="income">Income</option>
@@ -163,13 +172,14 @@ export const Transactions: React.FC = () => {
 
             {/* Filter Account */}
             <div className="space-y-1">
-              <label className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
+              <label htmlFor="tx-filter-account-select" className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
                 Account
               </label>
               <select
+                id="tx-filter-account-select"
                 value={filterAccount}
                 onChange={(e) => setFilterAccount(e.target.value)}
-                className="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-305 text-[10px] focus:outline-none"
+                className="w-full min-h-[40px] p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] focus:outline-none"
               >
                 <option value="all">All</option>
                 {accounts.map(acc => (
@@ -180,13 +190,14 @@ export const Transactions: React.FC = () => {
 
             {/* Filter Category */}
             <div className="space-y-1">
-              <label className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
+              <label htmlFor="tx-filter-category-select" className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold">
                 Category
               </label>
               <select
+                id="tx-filter-category-select"
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-305 text-[10px] focus:outline-none"
+                className="w-full min-h-[40px] p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] focus:outline-none"
               >
                 <option value="all">All</option>
                 {categories.map(cat => (
@@ -195,18 +206,18 @@ export const Transactions: React.FC = () => {
               </select>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Ledger Records */}
-      <div className="space-y-6">
+      <section aria-label="Chronological Ledger Records" className="space-y-6">
         {sortedMonths.length > 0 ? (
           sortedMonths.map((monthStr) => (
             <div key={monthStr} className="space-y-2">
               
               {/* Sticky Month Header */}
               <div className="sticky top-0 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs py-1.5 z-10 text-left border-b border-slate-100 dark:border-slate-800/40">
-                <span className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                   {formatMonthHeader(monthStr)}
                 </span>
               </div>
@@ -222,9 +233,17 @@ export const Transactions: React.FC = () => {
                   const isTransfer = tx.type === 'transfer';
 
                   return (
-                    <div
+                    <article
                       key={tx.id}
                       onClick={() => handleTxClick(tx)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${isTransfer ? 'Transfer' : tx.category} of ${formatAmount(tx.amount)} on account ${account?.name}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          handleTxClick(tx);
+                        }
+                      }}
                       className="flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-700/10 active:scale-99 transition-all cursor-pointer"
                     >
                       <div className="flex items-center space-x-3.5 min-w-0">
@@ -233,9 +252,9 @@ export const Transactions: React.FC = () => {
                           isIncome
                             ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400'
                             : isExpense
-                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-455'
+                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
                             : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400'
-                        }`}>
+                        }`} aria-hidden="true">
                           {isIncome ? (
                             <ArrowUpRight className="w-4 h-4" />
                           ) : isExpense ? (
@@ -246,9 +265,9 @@ export const Transactions: React.FC = () => {
                         </div>
 
                         <div className="min-w-0 text-left">
-                          <p className="text-xs font-bold text-slate-800 dark:text-slate-150 truncate">
+                          <h2 className="text-xs font-bold text-slate-800 dark:text-slate-155 truncate">
                             {isTransfer ? 'Transfer' : tx.category}
-                          </p>
+                          </h2>
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-[170px]">
                             {isTransfer
                               ? `${account?.name} → ${toAccount?.name}`
@@ -263,7 +282,7 @@ export const Transactions: React.FC = () => {
                           isIncome
                             ? 'text-green-600 dark:text-green-400'
                             : isExpense
-                            ? 'text-rose-600 dark:text-rose-455'
+                            ? 'text-rose-600 dark:text-rose-400'
                             : 'text-slate-700 dark:text-slate-300'
                         }`}>
                           {isIncome ? '+' : isExpense ? '-' : ''}
@@ -273,7 +292,7 @@ export const Transactions: React.FC = () => {
                           {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
@@ -281,11 +300,11 @@ export const Transactions: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="glass-panel rounded-3xl p-8 text-center text-slate-400 dark:text-slate-550 text-xs">
+          <div className="glass-panel rounded-3xl p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
             No matching transactions found.
           </div>
         )}
-      </div>
+      </section>
 
     </div>
   );

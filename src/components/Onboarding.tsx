@@ -78,7 +78,7 @@ export const Onboarding: React.FC = () => {
             <div className="inline-flex p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-3xl text-indigo-600 dark:text-indigo-400 mx-auto mb-6 shadow-sm">
               <Sparkles className="w-10 h-10" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-850 dark:text-slate-100 !margin-0">
+            <h1 id="onboarding-welcome-title" className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 m-0">
               Pocket Ledger
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-[280px] mx-auto font-medium">
@@ -90,7 +90,7 @@ export const Onboarding: React.FC = () => {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-750 dark:text-slate-200">100% Private</h4>
+                  <h2 className="text-xs font-bold text-slate-700 dark:text-slate-200">100% Private</h2>
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-normal">
                     Everything is stored directly in your local browser database.
                   </p>
@@ -101,7 +101,7 @@ export const Onboarding: React.FC = () => {
                   <Wallet className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-750 dark:text-slate-200">No Integrations Needed</h4>
+                  <h2 className="text-xs font-bold text-slate-700 dark:text-slate-200">No Integrations Needed</h2>
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-normal">
                     Log cash, digital wallets, bank balances, and transfers manually.
                   </p>
@@ -114,36 +114,38 @@ export const Onboarding: React.FC = () => {
         {/* Slide 1: Create First Account */}
         {slide === 1 && (
           <div className="flex-1 flex flex-col justify-center py-4">
-            <h3 className="text-xl font-bold text-slate-850 dark:text-slate-100 flex items-center space-x-2">
+            <h1 id="onboarding-account-title" className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
               <Wallet className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               <span>Add Your First Account</span>
-            </h3>
+            </h1>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Create an account to start logging transactions. E.g., Cash or Bank.
             </p>
 
             <div className="mt-6 space-y-4">
               <div className="space-y-1">
-                <label className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="first-account-name-input" className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Account Name
                 </label>
                 <input
+                  id="first-account-name-input"
                   type="text"
                   value={accName}
                   onChange={(e) => setAccName(e.target.value)}
                   placeholder="e.g. Cash In Hand, Main Bank"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="first-account-type-select" className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Account Type
                 </label>
                 <select
+                  id="first-account-type-select"
                   value={accType}
                   onChange={(e) => setAccType(e.target.value as Account['type'])}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="Cash">Cash (Physical Currency)</option>
                   <option value="Bank">Bank Account (Savings/Current)</option>
@@ -154,16 +156,17 @@ export const Onboarding: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="first-account-balance-input" className="text-[11px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Opening Balance
                 </label>
                 <input
+                  id="first-account-balance-input"
                   type="number"
                   inputMode="decimal"
                   value={openingBalance}
                   onChange={(e) => setOpeningBalance(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -173,17 +176,17 @@ export const Onboarding: React.FC = () => {
         {/* Slide 2: Set up Security PIN */}
         {slide === 2 && (
           <div className="flex-1 flex flex-col justify-center py-2">
-            <h3 className="text-xl font-bold text-slate-850 dark:text-slate-100 flex items-center space-x-2">
+            <h1 id="onboarding-security-title" className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
               <KeyRound className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               <span>Enable PIN Lock</span>
-            </h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
               Add a lock screen to protect your financials from prying eyes.
             </p>
 
-            <div className="mt-4 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200/55 dark:border-slate-750/50">
+            <div className="mt-4 flex items-center justify-between p-3 bg-slate-55 dark:bg-slate-800 rounded-xl border border-slate-200/55 dark:border-slate-700/50">
               <div className="flex flex-col">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-350">
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-400">
                   Secure with PIN
                 </span>
                 <span className="text-[10px] text-slate-400">
@@ -191,7 +194,9 @@ export const Onboarding: React.FC = () => {
                 </span>
               </div>
               <button
+                id="enable-pin-toggle-btn"
                 type="button"
+                aria-label="Toggle Secure with PIN option"
                 onClick={() => setEnablePin(!enablePin)}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   enablePin ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
@@ -209,10 +214,11 @@ export const Onboarding: React.FC = () => {
               <div className="mt-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-slate-400 uppercase font-bold">
+                    <label htmlFor="onboarding-pin-input" className="text-[10px] text-slate-400 uppercase font-bold">
                       PIN Code
                     </label>
                     <input
+                      id="onboarding-pin-input"
                       type="password"
                       maxLength={6}
                       pattern="[0-9]*"
@@ -220,14 +226,15 @@ export const Onboarding: React.FC = () => {
                       value={pin}
                       onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                       placeholder="4-6 digits"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-55 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-slate-400 uppercase font-bold">
+                    <label htmlFor="onboarding-confirm-pin-input" className="text-[10px] text-slate-400 uppercase font-bold">
                       Confirm PIN
                     </label>
                     <input
+                      id="onboarding-confirm-pin-input"
                       type="password"
                       maxLength={6}
                       pattern="[0-9]*"
@@ -235,19 +242,20 @@ export const Onboarding: React.FC = () => {
                       value={confirmPin}
                       onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
                       placeholder="Repeat PIN"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-55 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-semibold text-center focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase font-bold">
-                    Security Question (For Recovery)
+                  <label htmlFor="onboarding-security-question-select" className="text-[10px] text-slate-400 uppercase font-bold">
+                    Security Question
                   </label>
                   <select
+                    id="onboarding-security-question-select"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-150 text-xs focus:outline-none"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none"
                   >
                     <option value="What was the name of your first pet?">What was the name of your first pet?</option>
                     <option value="In what city were you born?">In what city were you born?</option>
@@ -257,15 +265,16 @@ export const Onboarding: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase font-bold">
+                  <label htmlFor="onboarding-security-answer-input" className="text-[10px] text-slate-400 uppercase font-bold">
                     Recovery Answer
                   </label>
                   <input
+                    id="onboarding-security-answer-input"
                     type="text"
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder="Case-insensitive answer"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-xs focus:outline-none"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs focus:outline-none"
                   />
                 </div>
 
@@ -282,12 +291,13 @@ export const Onboarding: React.FC = () => {
         {/* Footer controls */}
         <div className="mt-8 flex items-center justify-between w-full">
           {/* Progress dots */}
-          <div className="flex space-x-2">
+          <div className="flex space-x-2" role="group" aria-label="Slide indicators">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
+                aria-current={slide === i ? 'step' : undefined}
                 className={`h-1.5 rounded-full transition-all duration-350 ${
-                  slide === i ? 'w-5 bg-indigo-600 dark:bg-indigo-500' : 'w-1.5 bg-slate-200 dark:bg-slate-755'
+                  slide === i ? 'w-5 bg-indigo-600 dark:bg-indigo-500' : 'w-1.5 bg-slate-200 dark:bg-slate-800'
                 }`}
               />
             ))}
@@ -296,16 +306,18 @@ export const Onboarding: React.FC = () => {
           {/* Action button */}
           {slide < 2 ? (
             <button
+              id="onboarding-continue-btn"
               onClick={handleNext}
-              className="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+              className="min-h-[44px] inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <span>Continue</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
+              id="onboarding-finish-btn"
               onClick={handleFinish}
-              className="inline-flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
+              className="min-h-[44px] inline-flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl text-sm font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
             >
               <span>Get Started</span>
             </button>

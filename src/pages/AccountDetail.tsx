@@ -136,44 +136,48 @@ export const AccountDetail: React.FC = () => {
     <div className="pb-24 pt-6 px-4 max-w-lg mx-auto space-y-6 transition-all duration-300">
       
       {/* Header Panel */}
-      <div className="flex justify-between items-center">
+      <header id="account-detail-header" className="flex justify-between items-center">
         <button
+          id="account-detail-back-btn"
           onClick={handleBack}
-          className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-850 cursor-pointer"
+          aria-label="Go back to accounts list"
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+        <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">
           Account Details
-        </h3>
+        </h1>
         <button
+          id="account-detail-edit-btn"
           onClick={() => setIsEditOpen(true)}
-          className="p-2 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-850 cursor-pointer"
+          aria-label="Edit account settings"
+          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 cursor-pointer"
         >
           <Edit2 className="w-4.5 h-4.5" />
         </button>
-      </div>
+      </header>
 
       {/* Balance Summary Card */}
-      <div className="glass-panel rounded-3xl p-6 text-center shadow-xs bg-gradient-to-tr from-slate-50 via-white to-slate-50 dark:from-slate-850 dark:via-slate-800 dark:to-slate-850">
+      <section id="account-detail-worth-card" aria-label="Account worth card" className="glass-panel rounded-3xl p-6 text-center shadow-xs bg-gradient-to-tr from-slate-50 via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800">
         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           {selectedAccount.name}
         </span>
-        <h2 className="text-3xl font-extrabold text-slate-850 dark:text-slate-100 tracking-tight mt-1">
+        <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mt-1">
           {formatAmount(selectedAccount.currentBalance)}
         </h2>
         <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider block mt-1">
           {selectedAccount.type} Ledger
         </span>
-      </div>
+      </section>
 
       {/* Balance Trend Line Graph */}
       {chartData.length > 1 && (
-        <div className="glass-panel rounded-3xl p-5 shadow-xs">
-          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 mb-3 text-left">
+        <section id="account-detail-trend-section" aria-labelledby="trend-title" className="glass-panel rounded-3xl p-5 shadow-xs">
+          <h2 id="trend-title" className="text-xs font-bold text-slate-700 dark:text-slate-400 mb-3 text-left">
             Balance Trend
-          </h4>
-          <div className="h-36 w-full">
+          </h2>
+          <div className="h-36 w-full" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} tickLine={false} />
@@ -190,29 +194,33 @@ export const AccountDetail: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Filters Area */}
-      <div className="space-y-3">
+      <section id="account-detail-filters-section" aria-label="Filters and Search" className="space-y-3">
         <div className="flex space-x-2">
           {/* Search bar */}
           <div className="flex-1 relative">
+            <label htmlFor="account-detail-search-input" className="sr-only">Search transactions</label>
             <input
+              id="account-detail-search-input"
               type="text"
               placeholder="Search category, notes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-755 bg-white dark:bg-slate-850 text-slate-800 dark:text-slate-150 text-xs focus:outline-none"
+              className="w-full min-h-[44px] pl-9 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" aria-hidden="true" />
           </div>
 
           {/* Type Filter */}
           <select
+            id="account-detail-type-select"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-755 bg-white dark:bg-slate-850 text-slate-650 dark:text-slate-300 text-xs focus:outline-none"
+            aria-label="Filter by transaction type"
+            className="px-3 py-2 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs focus:outline-none"
           >
             <option value="all">All Types</option>
             <option value="income">Income</option>
@@ -222,15 +230,16 @@ export const AccountDetail: React.FC = () => {
         </div>
 
         {/* Date chips */}
-        <div className="flex space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex space-x-1.5 overflow-x-auto no-scrollbar py-0.5" role="group" aria-label="Filter by date range">
           {(['all', 'week', 'month', 'year'] as const).map((range) => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
-              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border transition cursor-pointer ${
+              aria-pressed={dateRange === range}
+              className={`px-3 py-1.5 min-h-[36px] rounded-xl text-[10px] font-bold border transition cursor-pointer ${
                 dateRange === range
                   ? 'bg-slate-800 dark:bg-slate-100 border-slate-800 dark:border-slate-100 text-white dark:text-slate-900 shadow-sm'
-                  : 'bg-white dark:bg-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-750 text-slate-500 dark:text-slate-400'
+                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
               }`}
             >
               {range === 'all' && 'All Time'}
@@ -240,13 +249,13 @@ export const AccountDetail: React.FC = () => {
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Transaction List */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider text-left">
+      <section id="account-detail-tx-section" aria-labelledby="tx-records-title" className="space-y-3">
+        <h2 id="tx-records-title" className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider text-left">
           Transaction Records ({filteredTxs.length})
-        </h4>
+        </h2>
 
         {filteredTxs.length > 0 ? (
           <div className="glass-panel rounded-3xl divide-y divide-slate-100 dark:divide-slate-700/30 overflow-hidden shadow-xs">
@@ -260,10 +269,18 @@ export const AccountDetail: React.FC = () => {
               const isTransferOut = isTransfer && tx.accountId === selectedAccount.id;
 
               return (
-                <div
+                <article
                   key={tx.id}
                   onClick={() => handleTxClick(tx)}
                   className="flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-700/10 active:scale-99 transition-all cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${isTransfer ? 'Transfer' : tx.category} of ${formatAmount(tx.amount)}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleTxClick(tx);
+                    }
+                  }}
                 >
                   <div className="flex items-center space-x-3 min-w-0">
                     {/* Icon */}
@@ -271,9 +288,9 @@ export const AccountDetail: React.FC = () => {
                       isIncome
                         ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400'
                         : isExpense || isTransferOut
-                        ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-455'
+                        ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
                         : 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400'
-                    }`}>
+                    }`} aria-hidden="true">
                       {isIncome ? (
                         <ArrowUpRight className="w-4 h-4" />
                       ) : isExpense ? (
@@ -284,13 +301,13 @@ export const AccountDetail: React.FC = () => {
                     </div>
 
                     <div className="min-w-0 text-left">
-                      <p className="text-xs font-bold text-slate-850 dark:text-slate-150 truncate">
+                      <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                         {isTransfer
                           ? isTransferOut
                             ? `Transfer to ${toAcc?.name}`
                             : `Transfer from ${fromAcc?.name}`
                           : tx.category}
-                      </p>
+                      </h2>
                       <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-[170px]">
                         {tx.notes || 'No description'}
                       </p>
@@ -302,17 +319,17 @@ export const AccountDetail: React.FC = () => {
                       isIncome
                         ? 'text-green-600 dark:text-green-400'
                         : isExpense || isTransferOut
-                        ? 'text-rose-600 dark:text-rose-455'
-                        : 'text-green-650 dark:text-green-400'
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : 'text-green-600 dark:text-green-400'
                     }`}>
                       {isIncome || (isTransfer && !isTransferOut) ? '+' : '-'}
                       {formatAmount(tx.amount)}
                     </p>
-                    <span className="text-[9px] text-slate-450 dark:text-slate-500 mt-0.5 block">
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 block">
                       {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
@@ -321,12 +338,13 @@ export const AccountDetail: React.FC = () => {
             No matching transactions found.
           </div>
         )}
-      </div>
+      </section>
 
       {/* Floating Add Transaction Button for this account */}
       <button
+        id="account-detail-fab-add"
         onClick={() => openAddModal(selectedAccount.id)}
-        className="fixed bottom-20 right-4 z-20 w-11 h-11 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition cursor-pointer"
+        className="fixed bottom-20 right-4 z-20 w-12.5 h-12.5 rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white flex items-center justify-center shadow-lg hover:scale-105 transition cursor-pointer"
         aria-label="Add Transaction to Account"
       >
         <Plus className="w-5 h-5" />
@@ -334,41 +352,45 @@ export const AccountDetail: React.FC = () => {
 
       {/* Edit Account Modal */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-700/50 relative">
+        <div id="account-detail-edit-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <section className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-700/50 relative" aria-labelledby="edit-account-modal-title">
             <button
+              id="account-detail-edit-close-btn"
               onClick={() => setIsEditOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650 cursor-pointer"
+              aria-label="Close modal"
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+            <h2 id="edit-account-modal-title" className="text-lg font-bold text-slate-800 dark:text-slate-100 m-0">
               Edit Account
-            </h3>
+            </h2>
 
             <form onSubmit={handleUpdate} className="mt-4 space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-450 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="account-detail-name-input" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Account Name
                 </label>
                 <input
+                  id="account-detail-name-input"
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-450 dark:text-slate-500 uppercase font-bold tracking-wide">
+                <label htmlFor="account-detail-type-select-modal" className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">
                   Account Type
                 </label>
                 <select
+                  id="account-detail-type-select-modal"
                   value={editType}
                   onChange={(e) => setEditType(e.target.value as Account['type'])}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-755 bg-slate-50 dark:bg-slate-850 text-slate-850 dark:text-slate-150 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="Cash">Cash (Physical Cash In Hand)</option>
                   <option value="Bank">Bank Account (Savings/Checking)</option>
@@ -380,31 +402,34 @@ export const AccountDetail: React.FC = () => {
 
               <div className="flex space-x-3 pt-2">
                 <button
+                  id="account-detail-delete-btn"
                   type="button"
                   onClick={handleDelete}
-                  className="px-4 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 text-rose-600 dark:text-rose-455 text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1 cursor-pointer"
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-xs font-bold shadow-sm transition flex items-center justify-center space-x-1 cursor-pointer"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Delete</span>
                 </button>
 
                 <button
+                  id="account-detail-cancel-btn"
                   type="button"
                   onClick={() => setIsEditOpen(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-650 dark:text-slate-350 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-750 transition cursor-pointer"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 
                 <button
+                  id="account-detail-save-btn"
                   type="submit"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
                 >
                   Save
                 </button>
               </div>
             </form>
-          </div>
+          </section>
         </div>
       )}
     </div>
