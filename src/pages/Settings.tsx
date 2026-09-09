@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 
-type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide';
+type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile';
 
 export const Settings: React.FC = () => {
   const {
@@ -38,7 +38,9 @@ export const Settings: React.FC = () => {
     accounts,
     transactions,
     settingsActivePanel,
-    setSettingsActivePanel
+    setSettingsActivePanel,
+    userName,
+    setUserName
   } = useFinanceStore();
 
   const { showToast, showDialog } = useNotificationStore();
@@ -113,7 +115,7 @@ export const Settings: React.FC = () => {
       
       const link = document.createElement('a');
       link.href = url;
-      link.download = `pocket_ledger_backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `pocket_ledger_pro_backup_${new Date().toISOString().split('T')[0]}.json`;
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -375,7 +377,7 @@ export const Settings: React.FC = () => {
             <AppIconFull size={36} className="w-9 h-9 rounded-xl flex-shrink-0" />
             <div>
               <span className="text-xs font-bold text-text-subtle uppercase tracking-wide">
-                Pocket Ledger
+                Pocket-Ledger.pro
               </span>
               <h1 id="settings-title" className="text-2xl font-bold text-text-primary font-display mt-0.5">
                 App Settings
@@ -405,6 +407,7 @@ export const Settings: React.FC = () => {
               {activePanel === 'reminders' && 'Notification Reminders'}
               {activePanel === 'goals' && 'Savings Targets'}
               {activePanel === 'guide' && 'User & Feature Guide'}
+              {activePanel === 'profile' && 'User Profile'}
             </h1>
           </div>
           <div className="w-10 h-10" />
@@ -421,6 +424,23 @@ export const Settings: React.FC = () => {
         ) : activePanel === 'none' ? (
           /* Main Settings Menu */
           <nav aria-label="Settings options menu" className="bento-card divide-y divide-border-custom overflow-hidden p-0">
+            {/* Profile Option */}
+            <button
+              id="settings-menu-profile"
+              onClick={() => setActivePanel('profile')}
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 bg-accent-green/10 text-accent-green rounded-xl" aria-hidden="true">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-primary block font-display">User Profile</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Update your display name</span>
+                </div>
+              </div>
+            </button>
+
             {/* Categories Option */}
             <button
               id="settings-menu-categories"
@@ -1278,10 +1298,36 @@ export const Settings: React.FC = () => {
             )}
 
             {/* 6. Sub-panel Guide */}
+            {activePanel === 'profile' && (
+              <section id="settings-profile-panel" aria-labelledby="settings-title" className="bento-card text-left space-y-4">
+                <div className="space-y-1">
+                  <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider font-body">Your Profile</h2>
+                  <p className="text-[10px] text-text-subtle font-body">Update how you want to be greeted in the dashboard</p>
+                </div>
+                
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-1">
+                    <label htmlFor="settings-user-name" className="text-[10px] text-text-secondary uppercase font-bold tracking-wide">
+                      Display Name
+                    </label>
+                    <input
+                      id="settings-user-name"
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="w-full min-h-[44px] px-4 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green transition"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* 7. Sub-panel Guide */}
             {activePanel === 'guide' && (
               <section id="settings-guide-panel" aria-labelledby="settings-title" className="bento-card text-left space-y-4">
                 <div className="space-y-1">
-                  <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider font-body">Pocket Ledger User Guide</h2>
+                  <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider font-body">Pocket-Ledger.pro User Guide</h2>
                   <p className="text-[10px] text-text-subtle font-body">Interactive guide to master your offline finance features</p>
                 </div>
                 
@@ -1438,7 +1484,7 @@ export const Settings: React.FC = () => {
         {/* Footer Version Details */}
         <footer className="text-center pt-4">
           <p className="text-[10px] text-text-subtle font-semibold tracking-wider uppercase font-body">
-            Pocket Ledger v1.0.0
+            Pocket-Ledger.pro v1.0.0
           </p>
           <p className="text-[9px] text-text-subtle mt-0.5 font-body opacity-80">
             Privacy-First • Completely Offline

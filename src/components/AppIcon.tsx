@@ -19,7 +19,7 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
       xmlns="http://www.w3.org/2000/svg"
       className={`rounded-[100px] shadow-2xl ${className}`}
       style={{ background: '#0B1220' }}
-      aria-label="Pocket Ledger Logo"
+      aria-label="Pocket-Ledger.pro Logo"
     >
       <defs>
         <linearGradient id="logo-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -73,7 +73,7 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
         letterSpacing="-0.5"
         textAnchor="middle"
       >
-        Pocket Ledger
+        Pocket-Ledger.pro
       </text>
     </svg>
   );
@@ -92,7 +92,7 @@ export const AppIconMonochrome: React.FC<AppIconProps> = ({ size = 24, className
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Pocket Ledger Notification Icon"
+      aria-label="Pocket-Ledger.pro Notification Icon"
     >
       <g transform="translate(1, 1) scale(0.19)">
         <path
@@ -136,7 +136,7 @@ export const AppIconAdaptiveForeground: React.FC<AppIconProps> = ({ size = 512, 
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Pocket Ledger Adaptive Icon Foreground"
+      aria-label="Pocket-Ledger.pro Adaptive Icon Foreground"
     >
       {/* Gradients */}
       <defs>

@@ -138,7 +138,7 @@ export const PINLock: React.FC = () => {
             <Lock className="w-7 h-7" />
           </div>
           <h1 id="pin-lock-title" className="text-xl font-bold tracking-tight text-text-primary font-display">
-            Pocket Ledger Locked
+            Pocket-Ledger.pro Locked
           </h1>
           <p className="text-xs text-text-subtle mt-1 max-w-[220px] font-body">
             Enter security PIN code to access database

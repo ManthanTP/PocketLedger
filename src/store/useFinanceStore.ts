@@ -47,11 +47,12 @@ interface FinanceState {
   securityAnswer: string | null;
   autoLockTimeout: number; // in minutes (0 = immediate, -1 = never, etc.)
   hideBalance: boolean;
+  userName: string;
   budgets: { [category: string]: number };
   reminders: ReminderItem[];
   goals: SavingsGoal[];
-  settingsActivePanel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide';
-  setSettingsActivePanel: (panel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide') => void;
+  settingsActivePanel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile';
+  setSettingsActivePanel: (panel: 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile') => void;
 
   // Actions
   init: () => Promise<void>;
@@ -60,6 +61,7 @@ interface FinanceState {
   setSelectedAccount: (account: Account | null) => void;
   setSelectedTransaction: (transaction: Transaction | null) => void;
   setHideBalance: (hide: boolean) => void;
+  setUserName: (name: string) => void;
   setBudget: (category: string, limit: number) => void;
   addReminder: (data: Omit<ReminderItem, 'id'>) => void;
   updateReminder: (id: string, data: Omit<ReminderItem, 'id'>) => void;
@@ -128,6 +130,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   securityAnswer: localStorage.getItem('securityAnswer') || null,
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
+  userName: localStorage.getItem('userName') || '',
   budgets: JSON.parse(localStorage.getItem('budgets') || '{}'),
   reminders: JSON.parse(localStorage.getItem('reminders') || '[]'),
   goals: JSON.parse(localStorage.getItem('goals') || '[]'),
@@ -239,6 +242,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   setHideBalance: (hide) => {
     localStorage.setItem('hideBalance', String(hide));
     set({ hideBalance: hide });
+  },
+
+  setUserName: (name) => {
+    localStorage.setItem('userName', name);
+    set({ userName: name });
   },
 
   // --- ACCOUNTS ---
@@ -466,6 +474,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       reminders: [],
       goals: []
     });
+    localStorage.removeItem('userName');
     // Apply changes
     get().setTheme('system');
     await get().init();

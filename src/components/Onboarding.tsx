@@ -6,7 +6,7 @@ import { AppIconFull } from './AppIcon';
 import { useNotificationStore } from '../store/useNotificationStore';
 
 export const Onboarding: React.FC = () => {
-  const { accounts, addAccount, setSecurityPIN } = useFinanceStore();
+  const { accounts, addAccount, setSecurityPIN, setUserName } = useFinanceStore();
   const { showDialog } = useNotificationStore();
   const [slide, setSlide] = useState<number>(0);
 
@@ -22,6 +22,9 @@ export const Onboarding: React.FC = () => {
   const [question, setQuestion] = useState<string>('What was the name of your first pet?');
   const [answer, setAnswer] = useState<string>('');
   const [secError, setSecError] = useState<string | null>(null);
+
+  // User name
+  const [userNameInput, setUserNameInput] = useState<string>('');
 
   // If we already have accounts, we don't show onboarding
   if (accounts.length > 0) {
@@ -67,6 +70,11 @@ export const Onboarding: React.FC = () => {
       setSecurityPIN(pin, question, answer);
     }
 
+    // Save user name
+    if (userNameInput.trim()) {
+      setUserName(userNameInput.trim());
+    }
+
     // Add first account
     const balNum = parseFloat(openingBalance) || 0;
     await addAccount(accName, accType, balNum);
@@ -85,7 +93,7 @@ export const Onboarding: React.FC = () => {
           <div className="flex-1 flex flex-col justify-center text-center py-6">
             <AppIconFull size={120} className="mx-auto mb-6 pulse-biometric" />
             <h1 id="onboarding-welcome-title" className="text-3xl font-extrabold tracking-tight text-text-primary font-display m-0">
-              Pocket Ledger
+              Pocket-Ledger.pro
             </h1>
             <p className="text-xs text-text-secondary mt-2 max-w-[280px] mx-auto font-medium font-body leading-relaxed">
               Offline-first, client-only ledger. Zero servers, absolute privacy.
@@ -113,6 +121,21 @@ export const Onboarding: React.FC = () => {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* User Name Input */}
+            <div className="mt-6 max-w-[290px] mx-auto w-full">
+              <label htmlFor="onboarding-user-name" className="text-[10px] text-text-secondary uppercase font-bold tracking-wide">
+                Your Name
+              </label>
+              <input
+                id="onboarding-user-name"
+                type="text"
+                value={userNameInput}
+                onChange={(e) => setUserNameInput(e.target.value)}
+                placeholder="Enter your name"
+                className="w-full mt-1 min-h-[44px] px-4 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green transition"
+              />
             </div>
           </div>
         )}

@@ -19,7 +19,8 @@ export const Dashboard: React.FC = () => {
     setSelectedTransaction,
     budgets,
     reminders,
-    goals
+    goals,
+    userName
   } = useFinanceStore();
 
   const { triggerAndroidNotification, showToast } = useNotificationStore();
@@ -154,9 +155,10 @@ export const Dashboard: React.FC = () => {
 
   const getGreeting = () => {
     const hours = now.getHours();
-    if (hours < 12) return 'Good morning, User';
-    if (hours < 17) return 'Good afternoon, User';
-    return 'Good evening, User';
+    const displayName = userName || 'User';
+    if (hours < 12) return `Good morning, ${displayName}`;
+    if (hours < 17) return `Good afternoon, ${displayName}`;
+    return `Good evening, ${displayName}`;
   };
 
   const [notificationIndex, setNotificationIndex] = useState(0);

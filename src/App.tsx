@@ -89,7 +89,7 @@ function App() {
           <AppIconFull size={120} className="pulse-biometric" />
           <div className="text-center space-y-1">
             <h1 className="text-lg font-bold tracking-widest text-text-primary font-display uppercase">
-              Pocket Ledger
+              Pocket-Ledger.pro
             </h1>
             <p className="text-[10px] text-text-subtle uppercase tracking-widest font-semibold font-body">
               Privacy-First Personal Finance
@@ -136,7 +136,7 @@ function App() {
       <noscript>
         <div className="bg-accent-red text-white text-xs font-bold py-2 px-4 flex items-center justify-center space-x-1">
           <ShieldAlert className="w-4 h-4" />
-          <span>JavaScript is disabled. Pocket Ledger requires browser storage to work.</span>
+          <span>JavaScript is disabled. Pocket-Ledger.pro requires browser storage to work.</span>
         </div>
       </noscript>
 

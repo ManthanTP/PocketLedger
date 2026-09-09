@@ -101,7 +101,7 @@ export const Transactions: React.FC = () => {
           <AppIconFull size={36} className="w-9 h-9 rounded-xl flex-shrink-0" />
           <div>
             <span className="text-xs font-bold text-text-subtle uppercase tracking-wide">
-              Pocket Ledger
+              Pocket-Ledger.pro
             </span>
             <h1 id="transactions-title" className="text-2xl font-bold text-text-primary font-display mt-0.5">
               Transaction Ledger
