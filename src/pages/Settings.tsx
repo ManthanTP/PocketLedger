@@ -4,6 +4,7 @@ import { useNotificationStore } from '../store/useNotificationStore';
 import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
+import { exportFile } from '../utils/nativeFileExport';
 
 type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile';
 
@@ -90,7 +91,7 @@ export const Settings: React.FC = () => {
   }, [activePanel]);
 
   // --- BACKUP ACTIONS ---
-  const handleExportBackup = () => {
+  const handleExportBackup = async () => {
     try {
       const backupData = {
         accounts,
@@ -110,16 +111,15 @@ export const Settings: React.FC = () => {
       };
 
       const jsonStr = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      const filename = `pocket_ledger_pro_backup_${new Date().toISOString().split('T')[0]}.json`;
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `pocket_ledger_pro_backup_${new Date().toISOString().split('T')[0]}.json`;
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await exportFile({
+        filename,
+        data: jsonStr,
+        mimeType: 'application/json',
+        dialogTitle: 'Export Backup File',
+      });
+
       showToast("Data backup file exported", "success");
     } catch (e) {
       showToast("Failed to export backup", "error");

@@ -6,6 +6,7 @@ import { Download, FileText, Calendar, Check, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { jsPDF } from 'jspdf';
 import { AppIconFull } from '../components/AppIcon';
+import { exportFile } from '../utils/nativeFileExport';
 
 export const Reports: React.FC = () => {
   const { transactions, accounts, currency, hideBalance, budgets } = useFinanceStore();
@@ -160,7 +161,7 @@ export const Reports: React.FC = () => {
   const chartData = Object.values(trendDataMap);
 
   // 6. CSV Export Helper
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (exportFilteredTxs.length === 0) {
       showToast("No transactions found in this date range.", "error");
       return;
@@ -198,21 +199,22 @@ export const Reports: React.FC = () => {
       ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pocket_ledger_custom_report.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setIsExportOpen(false);
-    showToast("CSV report downloaded", "success");
+    try {
+      await exportFile({
+        filename: `pocket_ledger_custom_report.csv`,
+        data: csvContent,
+        mimeType: 'text/csv;charset=utf-8;',
+        dialogTitle: 'Export CSV Report',
+      });
+      setIsExportOpen(false);
+      showToast("CSV report downloaded", "success");
+    } catch (err) {
+      showToast("Failed to export CSV report", "error");
+    }
   };
 
   // 7. jsPDF Exporter helper
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (exportFilteredTxs.length === 0) {
       showToast("No transactions found in this date range.", "error");
       return;
@@ -414,9 +416,20 @@ export const Reports: React.FC = () => {
       doc.text(`... and ${exportFilteredTxs.length - 50} other records. Check in-app ledger.`, 17, y + 2);
     }
 
-    doc.save(`pocket_ledger_pro_custom_report.pdf`);
-    setIsExportOpen(false);
-    showToast("PDF report exported successfully", "success");
+    try {
+      const dataUri = doc.output('datauristring');
+      await exportFile({
+        filename: `pocket_ledger_pro_custom_report.pdf`,
+        data: dataUri,
+        mimeType: 'application/pdf',
+        isBase64: true,
+        dialogTitle: 'Export PDF Report',
+      });
+      setIsExportOpen(false);
+      showToast("PDF report exported successfully", "success");
+    } catch (err) {
+      showToast("Failed to export PDF report", "error");
+    }
   };
 
   const openPdfExport = () => {
