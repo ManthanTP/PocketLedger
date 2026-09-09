@@ -15,7 +15,8 @@ export const AddEntryModal: React.FC = () => {
     addTransaction,
     updateTransaction,
     deleteTransaction,
-    currency
+    currency,
+    lastUsedAccountId
   } = useFinanceStore();
 
   const { showToast, showDialog } = useNotificationStore();
@@ -41,6 +42,18 @@ export const AddEntryModal: React.FC = () => {
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
+  // Helper: pick the best default account ID
+  const getDefaultAccountId = (): string => {
+    if (accounts.length === 0) return '';
+    // 1. Prefer last used / last created account (if it still exists)
+    if (lastUsedAccountId && accounts.some(a => a.id === lastUsedAccountId)) {
+      return lastUsedAccountId;
+    }
+    // 2. Fallback to most recently created account (highest createdAt)
+    const sorted = [...accounts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return sorted[0].id;
+  };
+
   // Sync state with prefilled parameters or selectedTransaction (for Edit mode)
   useEffect(() => {
     if (!isAddModalOpen) return;
@@ -64,20 +77,17 @@ export const AddEntryModal: React.FC = () => {
       setDate(new Date().toISOString().split('T')[0]);
       setNotes('');
 
-      if (prefilledAccountId) {
-        setAccountId(prefilledAccountId);
-      } else if (accounts.length > 0) {
-        setAccountId(accounts[0].id);
-      }
+      const defaultAccId = prefilledAccountId || getDefaultAccountId();
+      setAccountId(defaultAccId);
 
       if (accounts.length > 1) {
-        const otherAcc = accounts.find(a => a.id !== (prefilledAccountId || accounts[0].id));
+        const otherAcc = accounts.find(a => a.id !== defaultAccId);
         setToAccountId(otherAcc ? otherAcc.id : '');
       } else {
         setToAccountId('');
       }
     }
-  }, [isAddModalOpen, selectedTransaction, prefilledAccountId, prefilledModalType, accounts]);
+  }, [isAddModalOpen, selectedTransaction, prefilledAccountId, prefilledModalType, accounts, lastUsedAccountId]);
 
   // Set default category when tab changes
   useEffect(() => {

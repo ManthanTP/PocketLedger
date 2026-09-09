@@ -48,6 +48,7 @@ interface FinanceState {
   autoLockTimeout: number; // in minutes (0 = immediate, -1 = never, etc.)
   hideBalance: boolean;
   userName: string;
+  lastUsedAccountId: string | null;
   budgets: { [category: string]: number };
   reminders: ReminderItem[];
   goals: SavingsGoal[];
@@ -62,6 +63,7 @@ interface FinanceState {
   setSelectedTransaction: (transaction: Transaction | null) => void;
   setHideBalance: (hide: boolean) => void;
   setUserName: (name: string) => void;
+  setLastUsedAccountId: (id: string) => void;
   setBudget: (category: string, limit: number) => void;
   addReminder: (data: Omit<ReminderItem, 'id'>) => void;
   updateReminder: (id: string, data: Omit<ReminderItem, 'id'>) => void;
@@ -131,6 +133,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
   userName: localStorage.getItem('userName') || '',
+  lastUsedAccountId: localStorage.getItem('lastUsedAccountId') || null,
   budgets: JSON.parse(localStorage.getItem('budgets') || '{}'),
   reminders: JSON.parse(localStorage.getItem('reminders') || '[]'),
   goals: JSON.parse(localStorage.getItem('goals') || '[]'),
@@ -249,6 +252,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     set({ userName: name });
   },
 
+  setLastUsedAccountId: (id) => {
+    localStorage.setItem('lastUsedAccountId', id);
+    set({ lastUsedAccountId: id });
+  },
+
   // --- ACCOUNTS ---
   addAccount: async (name, type, openingBalance) => {
     const newAccount: Account = {
@@ -260,6 +268,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       createdAt: Date.now(),
     };
     await db.saveAccount(newAccount);
+    // Auto-select the newly created account for next transaction
+    get().setLastUsedAccountId(newAccount.id);
     await get().fetchData();
   },
 
@@ -311,6 +321,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       createdAt: Date.now(),
     };
     await db.saveTransaction(newTx);
+    // Remember the account used for the next transaction
+    get().setLastUsedAccountId(data.accountId);
     await get().fetchData();
   },
 

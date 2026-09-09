@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Safe zone: centered with adaptive-icon insets (66.67% of 512 = ~341, offset ~85.5) -->
+    <!-- Scale slightly down for safe area: translate(85.5, 85.5) scale(0.667) -->
+
+    <!-- P Loop & Stem -->
+    <path
+        android:pathData="M185,150 L290,150 C330,150 360,180 360,220 C360,260 330,290 290,290 L185,290 L185,360"
+        android:strokeWidth="32"
+        android:strokeColor="#10B981"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+
+    <!-- Zigzag Chart Line -->
+    <path
+        android:pathData="M185,340 L255,260 L305,310 L395,220"
+        android:strokeWidth="32"
+        android:strokeColor="#10B981"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+
+    <!-- Arrow Head -->
+    <path
+        android:pathData="M335,220 L395,220 L395,280"
+        android:strokeWidth="32"
+        android:strokeColor="#10B981"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+</vector>
