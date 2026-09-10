@@ -93,6 +93,9 @@ export const Settings: React.FC = () => {
   // --- BACKUP ACTIONS ---
   const handleExportBackup = async () => {
     try {
+      const dbInstance = await import('../db/db').then(m => m.db);
+      const secConfig = await dbInstance.getSecurityConfig();
+
       const backupData = {
         accounts,
         transactions,
@@ -103,10 +106,19 @@ export const Settings: React.FC = () => {
         settings: {
           theme,
           currency,
-          pinHash,
-          securityQuestion,
           autoLockTimeout,
-          hideBalance
+          hideBalance,
+          security: secConfig ? {
+            version: secConfig.version,
+            pinSalt: secConfig.pinSalt,
+            pinHash: secConfig.pinHash,
+            pinLength: secConfig.pinLength,
+            securityQuestion: secConfig.securityQuestion,
+            recoverySalt: secConfig.recoverySalt,
+            recoveryHash: secConfig.recoveryHash,
+          } : null,
+          pinHash: secConfig ? secConfig.pinHash : pinHash,
+          securityQuestion: secConfig ? secConfig.securityQuestion : securityQuestion,
         }
       };
 
@@ -122,6 +134,7 @@ export const Settings: React.FC = () => {
 
       showToast("Data backup file exported", "success");
     } catch (e) {
+      console.error('Failed to export backup:', e);
       showToast("Failed to export backup", "error");
     }
   };
@@ -161,15 +174,45 @@ export const Settings: React.FC = () => {
             if (json.settings.autoLockTimeout !== undefined) useFinanceStore.getState().setAutoLockTimeout(json.settings.autoLockTimeout);
             if (json.settings.hideBalance !== undefined) useFinanceStore.getState().setHideBalance(json.settings.hideBalance);
             
-            if (json.settings.pinHash) {
+            // Check for modern cryptographic backup format
+            if (json.settings.security && json.settings.security.pinHash) {
+              const sec = json.settings.security;
+              const secRecord = {
+                id: 'auth_config' as const,
+                version: sec.version || 2,
+                pinSalt: sec.pinSalt,
+                pinHash: sec.pinHash,
+                pinLength: sec.pinLength || 4,
+                securityQuestion: sec.securityQuestion || 'Security Question',
+                recoverySalt: sec.recoverySalt || '',
+                recoveryHash: sec.recoveryHash || '',
+                updatedAt: Date.now(),
+              };
+              await dbInstance.saveSecurityConfig(secRecord);
+              localStorage.setItem('hasPinLock', 'true');
+              useFinanceStore.setState({
+                pinHash: secRecord.pinHash,
+                pinSalt: secRecord.pinSalt,
+                pinLength: secRecord.pinLength,
+                securityQuestion: secRecord.securityQuestion,
+                recoverySalt: secRecord.recoverySalt,
+                recoveryHash: secRecord.recoveryHash,
+                isLegacyAuth: false,
+                isLocked: false,
+              });
+            } else if (json.settings.pinHash) {
+              // Legacy backup format: do NOT set broken 'restored_recovery_hash'
               localStorage.setItem('pinHash', json.settings.pinHash);
-              if (json.settings.securityQuestion) localStorage.setItem('securityQuestion', json.settings.securityQuestion);
-              if (json.settings.securityAnswer) localStorage.setItem('securityAnswer', 'restored_recovery_hash');
-              
+              localStorage.setItem('hasPinLock', 'true');
+              if (json.settings.securityQuestion) {
+                localStorage.setItem('securityQuestion', json.settings.securityQuestion);
+              }
               useFinanceStore.setState({
                 pinHash: json.settings.pinHash,
-                securityQuestion: json.settings.securityQuestion,
-                isLocked: false
+                pinLength: json.settings.pinLength || 4,
+                securityQuestion: json.settings.securityQuestion || null,
+                isLegacyAuth: true,
+                isLocked: false,
               });
             }
           }
@@ -223,7 +266,7 @@ export const Settings: React.FC = () => {
   };
 
   // --- SECURITY ACTIONS ---
-  const handleSetPin = (e: React.FormEvent) => {
+  const handleSetPin = async (e: React.FormEvent) => {
     e.preventDefault();
     setSecError(null);
 
@@ -242,15 +285,15 @@ export const Settings: React.FC = () => {
       return;
     }
 
-    setSecurityPIN(secPin, secQuestion, secAnswer);
+    await setSecurityPIN(secPin, secQuestion, secAnswer);
     setSecPin('');
     setSecConfirmPin('');
     setSecAnswer('');
     showToast("Security PIN enabled", "success");
   };
 
-  const handleDisablePIN = () => {
-    disablePIN();
+  const handleDisablePIN = async () => {
+    await disablePIN();
     showToast("Security PIN lock disabled", "info");
   };
 
@@ -1468,7 +1511,7 @@ export const Settings: React.FC = () => {
                 <span>Danger Zone</span>
               </h2>
               <p className="text-[10px] text-text-subtle leading-normal">
-                Clicking below will clear the local device SQLite simulation database and remove your login PIN lock codes permanently. This action is irreversible.
+                Clicking below will clear the local device database and remove your login PIN lock codes permanently. This action is irreversible.
               </p>
               <button
                 id="settings-danger-wipe-btn"

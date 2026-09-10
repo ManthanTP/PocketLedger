@@ -1,7 +1,15 @@
 import { create } from 'zustand';
-import { db, initDB } from '../db/db';
-import type { Account, Transaction, Category } from '../db/db';
-import { useNotificationStore } from './useNotificationStore';
+import { db, initDB } from '../db/db.ts';
+import type { Account, Transaction, Category, SecurityConfig } from '../db/db.ts';
+import { useNotificationStore } from './useNotificationStore.ts';
+import {
+  derivePinVerifier,
+  verifyPin,
+  deriveRecoveryVerifier,
+  verifyRecovery,
+  legacyHashString,
+  generateSalt
+} from '../utils/crypto.ts';
 
 export interface ReminderItem {
   id: string;
@@ -40,11 +48,15 @@ interface FinanceState {
   // Security / Settings
   theme: 'light' | 'dark' | 'system';
   currency: string;
-  pinHash: string | null; // MD5/SHA or simple hash (we will store simple string hash)
+  pinHash: string | null;
   pinLength: number;
   isLocked: boolean;
   securityQuestion: string | null;
   securityAnswer: string | null;
+  pinSalt: string | null;
+  recoverySalt: string | null;
+  recoveryHash: string | null;
+  isLegacyAuth: boolean;
   autoLockTimeout: number; // in minutes (0 = immediate, -1 = never, etc.)
   hideBalance: boolean;
   userName: string;
@@ -89,24 +101,13 @@ interface FinanceState {
   // Settings & Security actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setCurrency: (currency: string) => void;
-  setSecurityPIN: (pin: string, question: string, answer: string) => void;
-  disablePIN: () => void;
-  unlockApp: (pin: string) => boolean;
-  recoverPIN: (answer: string) => boolean;
+  setSecurityPIN: (pin: string, question: string, answer: string) => Promise<void>;
+  disablePIN: () => Promise<void>;
+  unlockApp: (pin: string) => Promise<boolean>;
+  recoverPIN: (answer: string) => Promise<boolean>;
   setAutoLockTimeout: (minutes: number) => void;
   wipeAllData: () => Promise<void>;
 }
-
-// Helper to hash PIN
-const hashString = (str: string): string => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash.toString();
-};
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   accounts: [],
@@ -125,11 +126,15 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   // Settings defaults loaded synchronously from LocalStorage
   theme: (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system',
   currency: localStorage.getItem('currency') || '₹',
-  pinHash: localStorage.getItem('pinHash') || null,
-  pinLength: parseInt(localStorage.getItem('pinLength') || '4', 10),
-  isLocked: !!localStorage.getItem('pinHash'), // lock if PIN is set
-  securityQuestion: localStorage.getItem('securityQuestion') || null,
-  securityAnswer: localStorage.getItem('securityAnswer') || null,
+  pinHash: null,
+  pinLength: 4,
+  isLocked: localStorage.getItem('hasPinLock') === 'true' || !!localStorage.getItem('pinHash'),
+  securityQuestion: null,
+  securityAnswer: null,
+  pinSalt: null,
+  recoverySalt: null,
+  recoveryHash: null,
+  isLegacyAuth: false,
   autoLockTimeout: parseInt(localStorage.getItem('autoLockTimeout') || '5', 10),
   hideBalance: localStorage.getItem('hideBalance') === 'true',
   userName: localStorage.getItem('userName') || '',
@@ -141,6 +146,54 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   init: async () => {
     // 1. Init IndexedDB
     await initDB();
+
+    // 2. Load or migrate Security Configuration from IndexedDB
+    const secConfig = await db.getSecurityConfig();
+    const legacyPinHash = localStorage.getItem('pinHash');
+    const legacyLength = parseInt(localStorage.getItem('pinLength') || '4', 10);
+    const legacyQuestion = localStorage.getItem('securityQuestion');
+    const legacyAnswer = localStorage.getItem('securityAnswer');
+
+    if (secConfig) {
+      localStorage.setItem('hasPinLock', 'true');
+      set({
+        pinHash: secConfig.pinHash,
+        pinSalt: secConfig.pinSalt,
+        pinLength: secConfig.pinLength,
+        securityQuestion: secConfig.securityQuestion,
+        recoverySalt: secConfig.recoverySalt,
+        recoveryHash: secConfig.recoveryHash,
+        isLegacyAuth: false,
+        isLocked: true,
+      });
+    } else if (legacyPinHash) {
+      // Legacy format detected in localStorage, flag for transparent migration
+      localStorage.setItem('hasPinLock', 'true');
+      set({
+        pinHash: legacyPinHash,
+        pinLength: legacyLength,
+        securityQuestion: legacyQuestion,
+        securityAnswer: legacyAnswer,
+        pinSalt: null,
+        recoverySalt: null,
+        recoveryHash: null,
+        isLegacyAuth: true,
+        isLocked: true,
+      });
+    } else {
+      localStorage.removeItem('hasPinLock');
+      set({
+        pinHash: null,
+        pinSalt: null,
+        pinLength: 4,
+        securityQuestion: null,
+        securityAnswer: null,
+        recoverySalt: null,
+        recoveryHash: null,
+        isLegacyAuth: false,
+        isLocked: false,
+      });
+    }
 
     // 2. Seed default categories if empty
     const dbCategories = await db.getCategories();
@@ -404,25 +457,46 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     set({ currency });
   },
 
-  setSecurityPIN: (pin, question, answer) => {
-    const hash = hashString(pin);
-    const ansHash = hashString(answer.trim().toLowerCase());
+  setSecurityPIN: async (pin, question, answer) => {
+    const { hashHex: pinHash, saltHex: pinSalt } = await derivePinVerifier(pin);
+    const { hashHex: recoveryHash, saltHex: recoverySalt } = await deriveRecoveryVerifier(answer);
 
-    localStorage.setItem('pinHash', hash);
-    localStorage.setItem('pinLength', pin.length.toString());
-    localStorage.setItem('securityQuestion', question);
-    localStorage.setItem('securityAnswer', ansHash);
-
-    set({
-      pinHash: hash,
+    const config: SecurityConfig = {
+      id: 'auth_config',
+      version: 2,
+      pinSalt,
+      pinHash,
       pinLength: pin.length,
       securityQuestion: question,
-      securityAnswer: ansHash,
+      recoverySalt,
+      recoveryHash,
+      updatedAt: Date.now(),
+    };
+
+    await db.saveSecurityConfig(config);
+    localStorage.setItem('hasPinLock', 'true');
+
+    // Clean up legacy localStorage tokens
+    localStorage.removeItem('pinHash');
+    localStorage.removeItem('pinLength');
+    localStorage.removeItem('securityQuestion');
+    localStorage.removeItem('securityAnswer');
+
+    set({
+      pinHash,
+      pinSalt,
+      pinLength: pin.length,
+      securityQuestion: question,
+      recoverySalt,
+      recoveryHash,
+      isLegacyAuth: false,
       isLocked: false,
     });
   },
 
-  disablePIN: () => {
+  disablePIN: async () => {
+    await db.deleteSecurityConfig();
+    localStorage.removeItem('hasPinLock');
     localStorage.removeItem('pinHash');
     localStorage.removeItem('pinLength');
     localStorage.removeItem('securityQuestion');
@@ -433,24 +507,101 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       pinLength: 4,
       securityQuestion: null,
       securityAnswer: null,
+      pinSalt: null,
+      recoverySalt: null,
+      recoveryHash: null,
+      isLegacyAuth: false,
       isLocked: false,
     });
   },
 
-  unlockApp: (pin) => {
-    const hash = hashString(pin);
-    if (hash === get().pinHash) {
+  unlockApp: async (pin) => {
+    const state = get();
+
+    // 1. Handle legacy 32-bit hash migration
+    if (state.isLegacyAuth && state.pinHash) {
+      const legacyCalculated = legacyHashString(pin);
+      if (legacyCalculated === state.pinHash) {
+        // Legacy PIN matches! Transparently migrate to PBKDF2
+        const legacyAnswer = localStorage.getItem('securityAnswer');
+        const question = state.securityQuestion || 'Security Question';
+
+        const { hashHex: newPinHash, saltHex: newPinSalt } = await derivePinVerifier(pin);
+        const { hashHex: newRecHash, saltHex: newRecSalt } = legacyAnswer
+          ? await deriveRecoveryVerifier(legacyAnswer)
+          : { hashHex: '', saltHex: generateSalt(16) };
+
+        const config: SecurityConfig = {
+          id: 'auth_config',
+          version: 2,
+          pinSalt: newPinSalt,
+          pinHash: newPinHash,
+          pinLength: pin.length,
+          securityQuestion: question,
+          recoverySalt: newRecSalt,
+          recoveryHash: newRecHash,
+          updatedAt: Date.now(),
+        };
+
+        await db.saveSecurityConfig(config);
+        localStorage.setItem('hasPinLock', 'true');
+
+        // Clean up legacy keys
+        localStorage.removeItem('pinHash');
+        localStorage.removeItem('pinLength');
+        localStorage.removeItem('securityQuestion');
+        localStorage.removeItem('securityAnswer');
+
+        set({
+          pinHash: newPinHash,
+          pinSalt: newPinSalt,
+          pinLength: pin.length,
+          securityQuestion: question,
+          recoverySalt: newRecSalt,
+          recoveryHash: newRecHash,
+          isLegacyAuth: false,
+          isLocked: false,
+        });
+        return true;
+      }
+      return false;
+    }
+
+    // 2. Modern PBKDF2 verification
+    if (!state.pinHash || !state.pinSalt) {
+      return false;
+    }
+
+    const valid = await verifyPin(pin, state.pinHash, state.pinSalt);
+    if (valid) {
       set({ isLocked: false });
       return true;
     }
     return false;
   },
 
-  recoverPIN: (answer) => {
-    const hash = hashString(answer.trim().toLowerCase());
-    if (hash === get().securityAnswer) {
-      // Temporarily unlock and clear the pin so the user can set a new one
-      get().disablePIN();
+  recoverPIN: async (answer) => {
+    const state = get();
+
+    // 1. If user is in legacy authentication mode
+    if (state.isLegacyAuth) {
+      const legacyStoredAnswer = localStorage.getItem('securityAnswer');
+      const calculated = legacyHashString(answer.trim().toLowerCase());
+      if (legacyStoredAnswer && calculated === legacyStoredAnswer) {
+        await get().disablePIN();
+        return true;
+      }
+      return false;
+    }
+
+    // 2. Modern PBKDF2 recovery verification
+    if (!state.recoveryHash || !state.recoverySalt) {
+      return false;
+    }
+
+    const valid = await verifyRecovery(answer, state.recoveryHash, state.recoverySalt);
+    if (valid) {
+      await get().disablePIN();
       return true;
     }
     return false;
@@ -463,6 +614,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   wipeAllData: async () => {
     await db.wipeDatabase();
+    localStorage.removeItem('hasPinLock');
+    localStorage.removeItem('pinHash');
+    localStorage.removeItem('pinLength');
+    localStorage.removeItem('securityQuestion');
+    localStorage.removeItem('securityAnswer');
     localStorage.removeItem('budgets');
     localStorage.removeItem('reminders');
     localStorage.removeItem('goals');
@@ -477,6 +633,10 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       theme: 'system',
       currency: '₹',
       pinHash: null,
+      pinSalt: null,
+      recoverySalt: null,
+      recoveryHash: null,
+      isLegacyAuth: false,
       isLocked: false,
       securityQuestion: null,
       securityAnswer: null,

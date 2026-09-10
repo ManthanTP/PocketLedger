@@ -26,8 +26,20 @@ export interface Category {
   isCustom: boolean;
 }
 
+export interface SecurityConfig {
+  id: 'auth_config';
+  version: number;
+  pinSalt: string;
+  pinHash: string;
+  pinLength: number;
+  securityQuestion: string;
+  recoverySalt: string;
+  recoveryHash: string;
+  updatedAt: number;
+}
+
 const DB_NAME = 'PocketLedgerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBDatabase | null = null;
 
@@ -66,6 +78,10 @@ export const initDB = (): Promise<IDBDatabase> => {
 
       if (!db.objectStoreNames.contains('categories')) {
         db.createObjectStore('categories', { keyPath: 'id' });
+      }
+
+      if (!db.objectStoreNames.contains('security')) {
+        db.createObjectStore('security', { keyPath: 'id' });
       }
     };
   });
@@ -168,6 +184,34 @@ export const db = {
     const store = await getStore('categories', 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  // --- SECURITY CREDENTIALS (STORED IN ORIGIN-PRIVATE INDEXEDDB) ---
+  async getSecurityConfig(): Promise<SecurityConfig | null> {
+    const store = await getStore('security', 'readonly');
+    return new Promise((resolve, reject) => {
+      const request = store.get('auth_config');
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async saveSecurityConfig(config: SecurityConfig): Promise<void> {
+    const store = await getStore('security', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.put(config);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async deleteSecurityConfig(): Promise<void> {
+    const store = await getStore('security', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.delete('auth_config');
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });

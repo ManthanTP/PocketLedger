@@ -33,7 +33,7 @@ export const PINLock: React.FC = () => {
     return null;
   }
 
-  const handleKeyPress = (num: string) => {
+  const handleKeyPress = async (num: string) => {
     if (pin.length >= pinLength) return;
     setError(null);
     const newPin = pin + num;
@@ -41,7 +41,7 @@ export const PINLock: React.FC = () => {
 
     // Verify PIN instantly when the input length matches the set pinLength
     if (newPin.length === pinLength) {
-      const success = unlockApp(newPin);
+      const success = await unlockApp(newPin);
       if (success) {
         setPin('');
         setError(null);
@@ -100,10 +100,10 @@ export const PINLock: React.FC = () => {
     }, 150);
   };
 
-  const handleRecoverySubmit = (e: React.FormEvent) => {
+  const handleRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRecoveryError(false);
-    const success = recoverPIN(recoveryAnswer);
+    const success = await recoverPIN(recoveryAnswer);
     if (success) {
       setIsRecovering(false);
       setRecoveryAnswer('');

@@ -67,7 +67,7 @@ export const Onboarding: React.FC = () => {
       }
 
       // Save PIN
-      setSecurityPIN(pin, question, answer);
+      await setSecurityPIN(pin, question, answer);
     }
 
     // Save user name
