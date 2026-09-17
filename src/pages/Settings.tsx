@@ -5,6 +5,7 @@ import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, 
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 import { exportFile } from '../utils/nativeFileExport';
+import { BiometricService, type BiometricStatus } from '../services/biometricService';
 
 type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile' | 'about';
 
@@ -59,6 +60,39 @@ export const Settings: React.FC = () => {
   const [secQuestion, setSecQuestion] = useState<string>('What was the name of your first pet?');
   const [secAnswer, setSecAnswer] = useState<string>('');
   const [secError, setSecError] = useState<string | null>(null);
+  const [bioStatus, setBioStatus] = useState<BiometricStatus | null>(null);
+
+  useEffect(() => {
+    if (activePanel === 'security') {
+      BiometricService.checkStatus().then(setBioStatus);
+    }
+  }, [activePanel]);
+
+  const handleTestBiometric = async () => {
+    const res = await BiometricService.authenticate({
+      title: "Test Fingerprint Unlock",
+      subtitle: "Scan your registered fingerprint to verify",
+      negativeButtonText: "Cancel"
+    });
+    if (res.success) {
+      showToast("Fingerprint verified successfully! Ready to unlock.", "success");
+    } else if (res.code === 'USER_CANCELED') {
+      showToast("Verification cancelled.", "info");
+    } else if (res.message) {
+      showToast(res.message, "error");
+    }
+  };
+
+  const handleEnrollBiometric = async () => {
+    const res = await BiometricService.enrollOrOpenSettings();
+    if (res.success) {
+      const updated = await BiometricService.checkStatus();
+      setBioStatus(updated);
+      showToast(res.message || "Opening device security settings...", "info");
+    } else if (res.message) {
+      showToast(res.message, "error");
+    }
+  };
 
   // Loading skeleton state
   const [loading, setLoading] = useState(true);
@@ -674,7 +708,7 @@ export const Settings: React.FC = () => {
                     <span className="text-xs font-bold text-text-primary block font-display">Download Android APK</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent-green/15 text-accent-green font-bold">v1.0 PRO</span>
                   </div>
-                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (4.75 MB)</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (31.5 MB)</span>
                 </div>
               </div>
               <Download className="w-4 h-4 text-text-subtle hover:text-accent-green" />
@@ -1276,6 +1310,69 @@ export const Settings: React.FC = () => {
                     </button>
                   </div>
                 </div>
+
+                <div className="border-t border-border-custom my-4" />
+
+                {/* Biometric Hardware Card */}
+                <div className="p-4 bg-white/5 border border-border-custom rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="p-2 bg-accent-green/10 text-accent-green rounded-xl">
+                        <Fingerprint className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-text-primary block font-display">
+                          Hardware Biometrics
+                        </span>
+                        <span className="text-[10px] text-text-subtle block">
+                          {bioStatus?.platform === 'android' ? 'Android Fingerprint Sensor' : 'Device Biometric Authenticator'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      bioStatus?.isEnrolled
+                        ? 'bg-accent-green/15 text-accent-green border border-accent-green/20'
+                        : bioStatus?.hasHardware
+                        ? 'bg-accent-amber/15 text-accent-amber border border-accent-amber/20'
+                        : 'bg-white/5 text-text-subtle border border-white/10'
+                    }`}>
+                      {bioStatus?.isEnrolled
+                        ? 'Active & Ready'
+                        : bioStatus?.hasHardware
+                        ? 'Not Enrolled'
+                        : 'No Sensor'}
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-text-secondary leading-relaxed">
+                    {bioStatus?.isEnrolled
+                      ? 'Your phone\'s registered fingerprint is active. Only fingerprints enrolled in your device settings will unlock the app.'
+                      : bioStatus?.hasHardware
+                      ? 'Your device supports fingerprint unlock, but no fingerprints are registered yet in device settings.'
+                      : 'No hardware biometric sensor detected on this device. Use your master PIN code.'}
+                  </p>
+
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    {bioStatus?.isEnrolled && (
+                      <button
+                        type="button"
+                        onClick={handleTestBiometric}
+                        className="px-3 py-1.5 rounded-xl bg-accent-green/15 hover:bg-accent-green/25 text-accent-green border border-accent-green/20 text-xs font-bold transition cursor-pointer"
+                      >
+                        Test Fingerprint Unlock
+                      </button>
+                    )}
+                    {bioStatus?.hasHardware && (
+                      <button
+                        type="button"
+                        onClick={handleEnrollBiometric}
+                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-primary border border-border-custom text-xs font-bold transition cursor-pointer"
+                      >
+                        {bioStatus?.platform === 'android' ? 'Open Phone Fingerprint Settings' : 'Register Web Biometric'}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </section>
             )}
 
@@ -1537,7 +1634,7 @@ export const Settings: React.FC = () => {
                     </button>
                     {expandedStep === 6 && (
                       <p className="text-[10px] text-text-secondary leading-normal font-body mt-2.5 animate-slide-up duration-150">
-                        Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad (verifies instantly) or the interactive fingerprint scan simulation.
+                        Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad PIN or your device's registered hardware fingerprint sensor (Android Biometric / Touch ID).
                       </p>
                     )}
                   </div>
@@ -1595,6 +1692,7 @@ export const Settings: React.FC = () => {
                     {[
                       { label: 'Version', value: '1.0.0 PRO' },
                       { label: 'Platform', value: 'Web & Android (Capacitor)' },
+                      { label: 'APK Package Size', value: '31.5 MB (Universal)' },
                       { label: 'Storage', value: '100% On-Device (IndexedDB)' },
                       { label: 'Internet', value: 'Not Required' },
                     ].map(item => (

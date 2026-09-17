@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Lock, Fingerprint, Delete, AlertCircle, HelpCircle, X } from 'lucide-react';
+import { Lock, Fingerprint, Delete, AlertCircle, HelpCircle, X, Settings as SettingsIcon, ShieldCheck } from 'lucide-react';
+import { BiometricService, type BiometricStatus } from '../services/biometricService';
 
 export const PINLock: React.FC = () => {
   const {
@@ -24,10 +25,37 @@ export const PINLock: React.FC = () => {
   const [recoveryError, setRecoveryError] = useState<boolean>(false);
   const [showWipeConfirm, setShowWipeConfirm] = useState<boolean>(false);
 
-  // Biometric state variables
-  const [biometricOpen, setBiometricOpen] = useState<boolean>(false);
-  const [scanState, setScanState] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
-  const [scanProgress, setScanProgress] = useState<number>(0);
+  // Hardware Biometric state
+  const [bioStatus, setBioStatus] = useState<BiometricStatus | null>(null);
+  const [showEnrollModal, setShowEnrollModal] = useState<boolean>(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+  const autoPromptRef = useRef<boolean>(false);
+
+  // Check biometric capability on mount or when locked
+  useEffect(() => {
+    if (!isLocked || !pinHash) return;
+
+    let isMounted = true;
+    BiometricService.checkStatus().then((status) => {
+      if (!isMounted) return;
+      setBioStatus(status);
+
+      // Optionally auto-prompt enrolled fingerprint once on initial screen appearance
+      if (status.isEnrolled && !autoPromptRef.current) {
+        autoPromptRef.current = true;
+        // Small delay to ensure UI transition settles
+        setTimeout(() => {
+          if (isMounted) {
+            triggerHardwareBiometric();
+          }
+        }, 350);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLocked, pinHash]);
 
   if (!isLocked || !pinHash) {
     return null;
@@ -65,39 +93,73 @@ export const PINLock: React.FC = () => {
     showToast("Incorrect security PIN entered", "error");
   };
 
-  const handleBiometricClick = () => {
-    setBiometricOpen(true);
-    setScanState('idle');
-    setScanProgress(0);
+  /**
+   * Real hardware biometric trigger
+   */
+  const triggerHardwareBiometric = async () => {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
+
+    try {
+      const currentStatus = await BiometricService.checkStatus();
+      setBioStatus(currentStatus);
+
+      // If no biometric enrolled on device, offer to create / enroll in Android Settings
+      if (!currentStatus.isEnrolled || currentStatus.status === 'NONE_ENROLLED') {
+        if (currentStatus.hasHardware) {
+          setShowEnrollModal(true);
+        } else {
+          showToast("No biometric sensor detected on this device. Please use your PIN.", "info");
+        }
+        setIsAuthenticating(false);
+        return;
+      }
+
+      // Device has enrolled fingerprint -> invoke official BiometricPrompt
+      const res = await BiometricService.authenticate({
+        title: "Unlock Pocket Ledger Pro",
+        subtitle: "Touch the fingerprint sensor to unlock",
+        negativeButtonText: "Use PIN"
+      });
+
+      if (res.success) {
+        useFinanceStore.setState({ isLocked: false });
+        showToast("Fingerprint verified. Welcome back!", "success");
+      } else if (res.code === 'NONE_ENROLLED') {
+        setShowEnrollModal(true);
+      } else if (res.code === 'LOCKOUT') {
+        setError('Fingerprint locked temporarily. Please enter PIN.');
+        showToast("Biometric locked temporarily. Enter your PIN.", "error");
+      } else if (res.code === 'USER_CANCELED') {
+        // User voluntarily cancelled or tapped "Use PIN", do not show error
+      } else if (res.message) {
+        showToast(res.message, "error");
+      }
+    } catch (err: unknown) {
+      console.warn("Biometric authentication error:", err);
+      showToast("Biometric verification error. Please enter PIN.", "error");
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
 
-  const startBiometricScan = () => {
-    if (scanState === 'scanning' || scanState === 'success') return;
-    setScanState('scanning');
-    setScanProgress(0);
-    
-    // Simulate high-fidelity biometric fingerprint scanning
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setScanProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        // 90% chance of success, 10% chance of scanning failure for realism
-        const isSuccess = Math.random() < 0.90;
-        if (isSuccess) {
-          setScanState('success');
-          setTimeout(() => {
-            setBiometricOpen(false);
-            useFinanceStore.setState({ isLocked: false });
-            showToast("Fingerprint scan verified. Welcome back!", "success");
-          }, 800);
-        } else {
-          setScanState('error');
-          showToast("Fingerprint not recognized. Please try again.", "error");
-        }
+  const handleBiometricClick = () => {
+    triggerHardwareBiometric();
+  };
+
+  const handleOpenEnrollment = async () => {
+    setShowEnrollModal(false);
+    const result = await BiometricService.enrollOrOpenSettings();
+    if (result.success) {
+      // Recheck status
+      const updated = await BiometricService.checkStatus();
+      setBioStatus(updated);
+      if (updated.isEnrolled) {
+        showToast("Biometric registered! You can now unlock with fingerprint.", "success");
       }
-    }, 150);
+    } else if (result.message) {
+      showToast(result.message, "info");
+    }
   };
 
   const handleRecoverySubmit = async (e: React.FormEvent) => {
@@ -140,8 +202,8 @@ export const PINLock: React.FC = () => {
           <h1 id="pin-lock-title" className="text-xl font-bold tracking-tight text-text-primary font-display">
             Pocket-Ledger.pro Locked
           </h1>
-          <p className="text-xs text-text-subtle mt-1 max-w-[220px] font-body">
-            Enter security PIN code to access database
+          <p className="text-xs text-text-subtle mt-1 max-w-[240px] font-body">
+            Enter PIN code or scan enrolled fingerprint
           </p>
         </header>
 
@@ -184,9 +246,12 @@ export const PINLock: React.FC = () => {
           ))}
           <button
             id="pin-key-biometric"
-            aria-label="Unlock with fingerprint biometric scan"
+            aria-label="Unlock with registered fingerprint"
             onClick={handleBiometricClick}
-            className="h-16 rounded-full flex items-center justify-center bg-bg-surface/50 border border-border-custom/50 text-accent-green hover:bg-white/5 active:scale-[0.88] transition-all cursor-pointer"
+            className={`h-16 rounded-full flex items-center justify-center bg-bg-surface/50 border border-border-custom/50 text-accent-green hover:bg-white/5 active:scale-[0.88] transition-all cursor-pointer relative ${
+              isAuthenticating ? 'opacity-50 pointer-events-none' : ''
+            }`}
+            title="Scan registered fingerprint"
           >
             <Fingerprint className="w-6 h-6 animate-pulse" />
           </button>
@@ -202,128 +267,115 @@ export const PINLock: React.FC = () => {
             id="pin-key-backspace"
             aria-label="Backspace"
             onClick={handleBackspace}
-            className="h-16 rounded-full flex items-center justify-center bg-bg-surface/50 border border-border-custom/50 text-text-secondary hover:bg-white/5 active:scale-[0.88] transition-all cursor-pointer"
+            className="h-16 rounded-full flex items-center justify-center bg-bg-surface border border-border-custom text-text-secondary hover:bg-white/5 active:scale-[0.88] transition-all cursor-pointer shadow-sm"
           >
             <Delete className="w-5 h-5" />
           </button>
         </section>
 
-        {/* Recovery Options */}
-        <footer className="mt-6">
+        {/* Footer actions */}
+        <footer className="mt-6 flex flex-col items-center space-y-2 text-xs">
           <button
-            id="forgot-pin-btn"
+            id="pin-forgot-btn"
             onClick={() => setIsRecovering(true)}
-            className="min-h-[44px] px-4 py-2 text-xs font-bold text-accent-green-light hover:underline flex items-center space-x-1 cursor-pointer"
+            className="text-text-subtle hover:text-accent-green transition flex items-center space-x-1 cursor-pointer py-1"
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            <span>Forgot PIN? Recover Data</span>
+            <span>Forgot PIN code?</span>
           </button>
         </footer>
       </div>
 
-      {/* Recovery Modal */}
+      {/* Recovery Question Modal */}
       {isRecovering && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-bg-surface border border-border-custom rounded-3xl p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="w-full max-w-sm bg-bg-surface border border-border-custom rounded-3xl p-6 shadow-2xl relative text-left space-y-4 animate-scale-pulse">
             <button
-              onClick={() => setIsRecovering(false)}
+              id="pin-recovery-close-btn"
+              onClick={() => {
+                setIsRecovering(false);
+                setRecoveryError(false);
+                setShowWipeConfirm(false);
+              }}
               className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/5 text-text-subtle hover:text-text-primary min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-left">
-              <h2 className="text-lg font-bold text-text-primary font-display m-0">
-                Recover Ledger Database
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-text-primary font-display m-0">
+                PIN Recovery
               </h2>
-            </div>
-            
-            {securityQuestion ? (
-              <form onSubmit={handleRecoverySubmit} className="mt-6 space-y-4 text-left">
-                <div className="space-y-1 bg-bg-base p-3 border border-border-custom rounded-xl">
-                  <span className="text-[9px] text-text-subtle uppercase font-bold tracking-wide">
-                    Security Question
-                  </span>
-                  <p className="text-xs font-bold text-text-secondary mt-0.5">
-                    {securityQuestion}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="recovery-answer-input" className="text-[9px] text-text-secondary uppercase font-bold tracking-wide">
-                    Your Answer
-                  </label>
-                  <input
-                    id="recovery-answer-input"
-                    type="text"
-                    required
-                    value={recoveryAnswer}
-                    onChange={(e) => setRecoveryAnswer(e.target.value)}
-                    placeholder="Enter case-insensitive answer"
-                    className="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green"
-                  />
-                  {recoveryError && (
-                    <p className="text-[10px] text-accent-red font-semibold mt-1">
-                      Incorrect answer value. Please verify and retry.
-                    </p>
-                  )}
-                </div>
-                
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    id="recovery-cancel-btn"
-                    type="button"
-                    onClick={() => {
-                      setIsRecovering(false);
-                      setRecoveryAnswer('');
-                      setRecoveryError(false);
-                    }}
-                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border border-border-custom bg-white/5 hover:bg-white/10 text-text-primary font-bold text-xs transition cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    id="recovery-verify-btn"
-                    type="submit"
-                    className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold text-xs shadow-sm transition cursor-pointer"
-                  >
-                    Verify Answer
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="mt-4 space-y-4 text-left text-xs text-text-secondary leading-normal">
-                <p>
-                  No security question was configured in this setup. The only recovery option is to completely overwrite and wipe all data.
-                </p>
-              </div>
-            )}
-
-            <div className="border-t border-border-custom my-6" />
-
-            <div className="space-y-3 text-left">
-              <h3 className="text-sm font-bold text-accent-red flex items-center space-x-1.5 m-0 font-display">
-                <AlertCircle className="w-4 h-4" />
-                <span>Wipe Database</span>
-              </h3>
-              <p className="text-[10px] text-text-subtle leading-normal">
-                Forgotten recovery keys? Overwriting the application resets the local database completely, letting you start fresh.
+              <p className="text-xs text-text-subtle font-body mt-0.5">
+                Answer your security question to reset access
               </p>
+            </div>
+
+            <div className="p-3 bg-white/5 border border-border-custom rounded-xl">
+              <span className="text-[10px] uppercase font-bold text-text-subtle block font-body">
+                Security Question
+              </span>
+              <p className="text-xs font-semibold text-text-primary mt-1 font-body">
+                {securityQuestion || "No security question configured."}
+              </p>
+            </div>
+
+            <form onSubmit={handleRecoverySubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="recovery-answer-input" className="text-[10px] uppercase font-bold text-text-secondary font-body">
+                  Your Answer
+                </label>
+                <input
+                  id="recovery-answer-input"
+                  type="text"
+                  required
+                  placeholder="Case-insensitive answer"
+                  value={recoveryAnswer}
+                  onChange={(e) => setRecoveryAnswer(e.target.value)}
+                  className="w-full min-h-[44px] px-3 py-2 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green font-body"
+                />
+              </div>
+
+              {recoveryError && (
+                <p className="text-xs text-accent-red font-medium">
+                  Incorrect answer. Please try again.
+                </p>
+              )}
+
+              <button
+                id="recovery-verify-btn"
+                type="submit"
+                className="w-full min-h-[44px] py-2.5 rounded-xl bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold text-xs shadow-sm cursor-pointer"
+              >
+                Reset PIN & Unlock
+              </button>
+            </form>
+
+            <div className="pt-2 border-t border-border-custom flex flex-col items-center">
               {showWipeConfirm ? (
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    id="wipe-cancel-btn"
-                    onClick={() => setShowWipeConfirm(false)}
-                    className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-white/5 border border-border-custom text-text-primary text-xs font-bold cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    id="wipe-confirm-btn"
-                    onClick={handleWipeData}
-                    className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-accent-red hover:bg-accent-red/90 text-white text-xs font-bold cursor-pointer"
-                  >
-                    Yes, Wipe DB
-                  </button>
+                <div className="w-full p-3 bg-accent-red/10 border border-accent-red/30 rounded-xl space-y-2 text-center">
+                  <p className="text-[11px] font-bold text-accent-red">
+                    Are you completely sure?
+                  </p>
+                  <p className="text-[10px] text-text-secondary">
+                    All accounts, transactions, and categories will be permanently deleted.
+                  </p>
+                  <div className="flex space-x-2 pt-1">
+                    <button
+                      id="wipe-cancel-btn"
+                      onClick={() => setShowWipeConfirm(false)}
+                      className="flex-1 py-1.5 rounded-lg bg-bg-base border border-border-custom text-text-secondary text-xs font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      id="wipe-confirm-btn"
+                      onClick={handleWipeData}
+                      className="flex-1 py-1.5 rounded-lg bg-accent-red hover:bg-accent-red/90 text-white text-xs font-bold"
+                    >
+                      Yes, Wipe All
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -339,112 +391,57 @@ export const PINLock: React.FC = () => {
         </div>
       )}
 
-      {/* Real Biometric Fingerprint Scanner Bottom Sheet/Modal */}
-      {biometricOpen && (
+      {/* Enrollment Helper Modal (when phone has hardware but no fingerprint enrolled) */}
+      {showEnrollModal && (
         <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
-          <div className="w-full max-w-sm bg-bg-surface border border-border-custom rounded-3xl p-6 shadow-2xl relative text-center space-y-6 animate-scale-pulse">
+          <div className="w-full max-w-sm bg-bg-surface border border-border-custom rounded-3xl p-6 shadow-2xl relative text-center space-y-5 animate-scale-pulse">
             <button
-              onClick={() => setBiometricOpen(false)}
+              onClick={() => setShowEnrollModal(false)}
               className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/5 text-text-subtle hover:text-text-primary min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="space-y-1">
-              <h2 className="text-lg font-bold text-text-primary font-display m-0">
-                Biometric Login
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-accent-green/10 border border-accent-green/20 flex items-center justify-center text-accent-green">
+              <Fingerprint className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-base font-bold text-text-primary font-display m-0">
+                {bioStatus?.platform === 'android'
+                  ? 'No Fingerprint Enrolled on Phone'
+                  : 'Register Biometric Passkey'}
               </h2>
-              <p className="text-xs text-text-subtle font-body mt-0.5">
-                Verify identity using fingerprint sensor
+              <p className="text-xs text-text-secondary leading-relaxed font-body">
+                {bioStatus?.platform === 'android'
+                  ? 'Your phone supports fingerprint biometrics, but no fingerprints have been registered in your Android settings yet. Would you like to set one up now?'
+                  : 'Register your device biometric sensor (Touch ID, Windows Hello, or Chrome Android) to unlock Pocket Ledger Pro instantly.'}
               </p>
             </div>
 
-            {/* Circular Glowing Scanner ring */}
-            <div className="flex justify-center py-4">
+            <div className="space-y-2 pt-2">
               <button
-                onClick={startBiometricScan}
-                className={`relative w-36 h-36 rounded-full border-2 flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                  scanState === 'scanning'
-                    ? 'border-accent-green bg-accent-green/5 shadow-[0_0_25px_rgba(16,185,129,0.2)]'
-                    : scanState === 'success'
-                    ? 'border-accent-green bg-accent-green/10 shadow-[0_0_35px_rgba(16,185,129,0.4)]'
-                    : scanState === 'error'
-                    ? 'border-accent-red bg-accent-red/10 shadow-[0_0_25px_rgba(239,68,68,0.3)] animate-shake'
-                    : 'border-border-custom bg-white/3 hover:bg-white/5 hover:border-white/20'
-                }`}
+                onClick={handleOpenEnrollment}
+                className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-accent-green hover:bg-accent-green/90 text-bg-base font-bold text-xs shadow-sm cursor-pointer flex items-center justify-center space-x-2"
               >
-                {/* Fingerprint Symbol */}
-                <div className="relative overflow-hidden w-20 h-20 flex items-center justify-center">
-                  <Fingerprint className={`w-20 h-20 transition-all duration-300 ${
-                    scanState === 'scanning'
-                      ? 'text-accent-green-light scale-105'
-                      : scanState === 'success'
-                      ? 'text-accent-green scale-105'
-                      : scanState === 'error'
-                      ? 'text-accent-red'
-                      : 'text-text-secondary'
-                  }`} />
-                  
-                  {/* Glowing Laser Sweep Line */}
-                  {scanState === 'scanning' && (
-                    <div className="absolute left-0 right-0 h-0.5 bg-accent-green-light shadow-[0_0_8px_#10B981] animate-laser" />
-                  )}
-                </div>
-
-                {/* Progress Circle Border */}
-                {scanState === 'scanning' && (
-                  <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="46"
-                      stroke="rgba(16,185,129,0.2)"
-                      strokeWidth="2.5"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="46"
-                      stroke="#10B981"
-                      strokeWidth="3"
-                      fill="transparent"
-                      strokeDasharray={289}
-                      strokeDashoffset={289 - (289 * scanProgress) / 100}
-                      className="transition-all duration-150"
-                    />
-                  </svg>
+                {bioStatus?.platform === 'android' ? (
+                  <>
+                    <SettingsIcon className="w-4 h-4" />
+                    <span>Open Phone Settings</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Register Device Fingerprint</span>
+                  </>
                 )}
               </button>
-            </div>
-
-            <div className="space-y-4">
-              <p className={`text-xs font-semibold font-body min-h-[16px] transition-colors duration-200 mt-0 ${
-                scanState === 'scanning'
-                  ? 'text-accent-green-light animate-pulse'
-                  : scanState === 'success'
-                  ? 'text-accent-green'
-                  : scanState === 'error'
-                  ? 'text-accent-red'
-                  : 'text-text-secondary'
-              }`}>
-                {scanState === 'idle' && 'Tap the sensor to scan fingerprint'}
-                {scanState === 'scanning' && `Scanning... ${scanProgress}%`}
-                {scanState === 'success' && 'Scan Complete! Unlocked'}
-                {scanState === 'error' && 'Scan Failed. Tap sensor to retry'}
-              </p>
-
-              {scanState === 'error' && (
-                <button
-                  onClick={() => {
-                    setScanState('idle');
-                    setScanProgress(0);
-                  }}
-                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-primary text-xs font-bold rounded-xl cursor-pointer transition-colors duration-150"
-                >
-                  Retry Scan
-                </button>
-              )}
+              <button
+                onClick={() => setShowEnrollModal(false)}
+                className="w-full min-h-[40px] py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-text-secondary font-bold text-xs cursor-pointer"
+              >
+                Use PIN Code Instead
+              </button>
             </div>
           </div>
         </div>
