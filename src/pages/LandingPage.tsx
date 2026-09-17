@@ -781,9 +781,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
         </div>
       </footer>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
