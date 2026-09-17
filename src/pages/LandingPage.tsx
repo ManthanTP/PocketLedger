@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Download,
   Shield,
@@ -19,6 +19,7 @@ import {
   Globe
 } from 'lucide-react';
 import { AppIconFull } from '../components/AppIcon';
+import { useScrollReveal, ScrollReveal } from '../hooks/useScrollReveal';
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -29,6 +30,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
   const [incomeSlider, setIncomeSlider] = useState<number>(65000);
   const [savingsRate, setSavingsRate] = useState<number>(30);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // Scroll reveal refs for each section
+  const heroBadgeRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 600, delay: 100 });
+  const heroHeadlineRef = useScrollReveal<HTMLHeadingElement>({ animation: 'fade-up', duration: 800, delay: 200 });
+  const heroSubtitleRef = useScrollReveal<HTMLParagraphElement>({ animation: 'fade-up', duration: 800, delay: 350 });
+  const heroButtonsRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 500 });
+  const heroMetaRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-in', duration: 1000, delay: 650 });
+  const heroStatsRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 800 });
+  const previewHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const previewContentRef = useScrollReveal<HTMLDivElement>({ animation: 'scale-in', duration: 800, delay: 150 });
+  const calculatorRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800 });
+  const featuresHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const specsHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const specsGridRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 150 });
+  const sideloadRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 300 });
+  const faqHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const ctaRef = useScrollReveal<HTMLDivElement>({ animation: 'scale-in', duration: 900 });
 
   const calculatedSavings = Math.round(incomeSlider * (savingsRate / 100));
   const yearlyProjected = calculatedSavings * 12;
@@ -121,13 +139,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
         {/* HERO SECTION */}
         <section className="pt-16 pb-20 sm:pt-24 sm:pb-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           {/* Status Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold tracking-wide mb-8">
+          <div ref={heroBadgeRef} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold tracking-wide mb-8">
             <Shield className="w-3.5 h-3.5" />
             <span>100% Offline • Zero Telemetry • True Financial Sovereignty</span>
           </div>
 
           {/* Hero Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.12]">
+          <h1 ref={heroHeadlineRef} className="text-4xl sm:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.12]">
             Your Money. Your Privacy.{' '}
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 bg-clip-text text-transparent">
               Zero Cloud.
@@ -135,12 +153,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </h1>
 
           {/* Hero Subtitle */}
-          <p className="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+          <p ref={heroSubtitleRef} className="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
             A high-performance personal finance ledger built entirely offline. Track accounts, generate professional PDF statements, monitor cash books, and protect your wealth with biometric PIN security.
           </p>
 
           {/* Dual Action Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+          <div ref={heroButtonsRef} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
             <a
               href="/PocketLedgerPRO.apk"
               download="PocketLedgerPRO.apk"
@@ -161,7 +179,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Metadata Specs Bar */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400 font-mono">
+          <div ref={heroMetaRef} className="mt-8 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1.5 text-slate-300">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               v1.0.0 PRO (Release)
@@ -175,7 +193,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Trust Highlights */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <div ref={heroStatsRef} className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-center">
               <div className="text-2xl font-display font-extrabold text-white">0 ms</div>
               <div className="text-xs text-slate-400 mt-1">Server Latency</div>
@@ -198,7 +216,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
         {/* INTERACTIVE DEVICE PREVIEW & PLAYGROUND */}
         <section id="preview" className="py-20 bg-slate-900/40 border-y border-white/[0.06] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-14">
+            <div ref={previewHeadingRef} className="text-center max-w-3xl mx-auto mb-14">
               <span className="text-xs uppercase font-bold tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                 Interactive Showcase
               </span>
@@ -238,7 +256,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             </div>
 
             {/* Interactive Preview Container */}
-            <div className="max-w-4xl mx-auto rounded-3xl bg-[#111C30]/90 border border-white/10 p-6 sm:p-8 shadow-2xl shadow-black/60 relative overflow-hidden">
+            <div ref={previewContentRef} className="max-w-4xl mx-auto rounded-3xl bg-[#111C30]/90 border border-white/10 p-6 sm:p-8 shadow-2xl shadow-black/60 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
               {/* Tab 1: Dashboard View */}
@@ -429,7 +447,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
         {/* INTERACTIVE CASHFLOW CALCULATOR */}
         <section className="py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/20 p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+          <div ref={calculatorRef} className="rounded-3xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/20 p-8 sm:p-12 shadow-2xl relative overflow-hidden">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/25 mb-4">
                 <Sliders className="w-3.5 h-3.5" />
@@ -493,7 +511,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
         {/* CORE FEATURES GRID */}
         <section id="features" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div ref={featuresHeadingRef} className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-white tracking-tight">
               Crafted for True Financial Freedom
             </h2>
@@ -537,13 +555,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             ].map((feature, i) => {
               const Icon = feature.icon;
               return (
-                <div key={i} className="p-8 rounded-3xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.08] hover:border-emerald-500/30 transition-all duration-300 group">
+                <ScrollReveal key={i} animation="fade-up" duration={700} delay={i * 120}>
+                <div className="p-8 rounded-3xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.08] hover:border-emerald-500/30 transition-all duration-300 group">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                     <Icon className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-display font-bold text-white mb-2">{feature.title}</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">{feature.desc}</p>
                 </div>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -552,12 +572,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
         {/* TECHNICAL SPECS SECTION */}
         <section id="specs" className="py-20 bg-slate-900/40 border-y border-white/[0.06]">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
+            <div ref={specsHeadingRef} className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-xs uppercase font-mono text-emerald-400 font-bold tracking-wider">Verified Release</span>
               <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white mt-1">APK Specifications</h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div ref={specsGridRef} className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-xs text-slate-400">Application File</div>
                 <div className="text-base font-bold text-white mt-1 font-mono">PocketLedgerPRO.apk</div>
@@ -585,7 +605,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             </div>
 
             {/* Quick Sideload Steps */}
-            <div className="mt-12 p-8 rounded-3xl bg-white/[0.03] border border-white/[0.08]">
+            <div ref={sideloadRef} className="mt-12 p-8 rounded-3xl bg-white/[0.03] border border-white/[0.08]">
               <h3 className="text-lg font-bold text-white mb-6">How to Sideload & Install on Android:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="flex gap-4">
@@ -613,7 +633,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
         {/* FAQ ACCORDION */}
         <section id="faq" className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <div ref={faqHeadingRef} className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">Frequently Asked Questions</h2>
           </div>
 
@@ -621,7 +641,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div key={idx} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
+                <ScrollReveal key={idx} animation="fade-up" duration={600} delay={idx * 100}>
+                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] overflow-hidden">
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
                     className="w-full p-5 text-left flex items-center justify-between gap-4 font-semibold text-sm sm:text-base text-white hover:text-emerald-400 transition-colors cursor-pointer"
@@ -635,6 +656,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                     </div>
                   )}
                 </div>
+                </ScrollReveal>
               );
             })}
           </div>
@@ -642,7 +664,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
 
         {/* FINAL CALL TO ACTION */}
         <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="rounded-3xl bg-gradient-to-r from-emerald-900/30 via-slate-900 to-teal-900/30 border border-emerald-500/20 p-10 sm:p-16 max-w-4xl mx-auto">
+          <div ref={ctaRef} className="rounded-3xl bg-gradient-to-r from-emerald-900/30 via-slate-900 to-teal-900/30 border border-emerald-500/20 p-10 sm:p-16 max-w-4xl mx-auto">
             <AppIconFull size={80} className="mx-auto mb-6 rounded-2xl shadow-xl shadow-emerald-500/20" />
             <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
               Ready to Take Back Control of Your Finances?
@@ -674,38 +696,73 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </main>
 
       {/* FOOTER WITH PROFESSIONAL ATTRIBUTION */}
-      <footer className="border-t border-white/[0.08] py-12 relative z-10 bg-[#080D17]">
+      <footer className="border-t border-white/[0.08] relative z-10 bg-[#080D17]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-            <div className="flex items-center gap-3">
-              <AppIconFull size={32} className="rounded-lg" />
-              <span className="font-display font-bold text-white">Pocket Ledger Pro</span>
+          {/* Top Section: Logo + Nav */}
+          <div className="py-10 sm:py-12 flex flex-col items-center gap-8 md:flex-row md:justify-between">
+            {/* Brand */}
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <div className="flex items-center gap-3">
+                <AppIconFull size={36} className="rounded-xl shadow-lg shadow-emerald-500/10" />
+                <div>
+                  <span className="font-display font-extrabold text-lg text-white tracking-tight">Pocket Ledger Pro</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">v1.0 PRO</span>
+                    <span className="text-[10px] text-slate-500 font-medium">Private Offline Finance</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
-              <button onClick={onLaunchApp} className="hover:text-emerald-400 transition-colors cursor-pointer">
-                Web Application
-              </button>
-              <a href="/PocketLedgerPRO.apk" download className="hover:text-emerald-400 transition-colors">
-                Download APK (36.2 MB)
-              </a>
-              <a href="#features" className="hover:text-emerald-400 transition-colors">
+            {/* Navigation Links */}
+            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-center md:flex md:items-center md:gap-8">
+              <a href="#features" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
                 Features
               </a>
-              <a href="#specs" className="hover:text-emerald-400 transition-colors">
+              <a href="#preview" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
+                Demo
+              </a>
+              <a href="#specs" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
                 Specs
+              </a>
+              <a href="#faq" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
+                FAQ
+              </a>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={onLaunchApp}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-white/10 hover:border-emerald-500/30 bg-white/[0.03] hover:bg-white/[0.06] text-slate-200 text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Globe className="w-4 h-4 text-emerald-400" />
+                <span>Web App</span>
+              </button>
+              <a
+                href="/PocketLedgerPRO.apk"
+                download="PocketLedgerPRO.apk"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4 stroke-[2.5]" />
+                <span>APK</span>
+                <span className="text-[10px] font-mono opacity-70">36.2 MB</span>
               </a>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <p>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+
+          {/* Bottom Section: Copyright */}
+          <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] sm:text-xs text-slate-500 text-center sm:text-left">
               © {new Date().getFullYear()} Pocket Ledger Pro • Created by{' '}
               <a
                 href="https://manthantp-portfolio.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
+                className="text-emerald-400/80 hover:text-emerald-300 font-semibold transition-colors"
               >
                 Manthan Patel
               </a>
@@ -716,11 +773,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               href="https://manthantp-portfolio.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition-colors font-medium"
+              className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 hover:text-emerald-400 transition-colors font-medium"
             >
               <span>Portfolio</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3 h-3" />
             </a>
+          </div>
+        </div>
+      </footer>
           </div>
         </div>
       </footer>
