@@ -13,13 +13,13 @@
   <!-- Dark Navy APK Launcher Background -->
   <rect width="512" height="512" rx="108" fill="#0B1220" />
 
-  <!-- APK Logo Mark: Emerald Glowing P-Arrow Chart -->
-  <g transform="translate(85.3, 85.3) scale(0.667)" filter="url(#glow)">
+  <!-- APK Logo Mark: Bold Emerald Glowing P-Arrow Chart -->
+  <g transform="translate(-135.5, -88.25) scale(1.35)" filter="url(#glow)">
     <!-- Loop & Stem of the P -->
     <path
       d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
       stroke="url(#logo-gradient)"
-      stroke-width="34"
+      stroke-width="32"
       stroke-linecap="round"
       stroke-linejoin="round"
     />
@@ -28,7 +28,7 @@
     <path
       d="M 185 340 L 255 260 L 305 310 L 395 220"
       stroke="url(#logo-gradient)"
-      stroke-width="34"
+      stroke-width="32"
       stroke-linecap="round"
       stroke-linejoin="round"
     />
@@ -37,7 +37,7 @@
     <path
       d="M 335 220 H 395 V 280"
       stroke="url(#logo-gradient)"
-      stroke-width="34"
+      stroke-width="32"
       stroke-linecap="round"
       stroke-linejoin="round"
     />

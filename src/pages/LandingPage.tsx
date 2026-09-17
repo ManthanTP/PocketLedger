@@ -84,27 +84,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       </div>
 
       {/* Sticky Header Navigation */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1220]/80 border-b border-white/[0.08] transition-all duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="relative">
-              <AppIconFull size={44} className="rounded-xl shadow-lg shadow-emerald-500/20" />
-              <span className="absolute -bottom-1 -right-1 flex h-3 w-3">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1220]/85 border-b border-white/[0.08] transition-all duration-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+          {/* Brand Logo & Name */}
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-shrink-0">
+            <div className="relative flex-shrink-0">
+              <AppIconFull size={38} className="rounded-xl shadow-lg shadow-emerald-500/20" />
+              <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-display font-extrabold text-lg text-white tracking-tight">Pocket Ledger Pro</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  v1.0.0 PRO
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-display font-extrabold text-base sm:text-lg text-white tracking-tight whitespace-nowrap">
+                  Pocket Ledger
+                </span>
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+                  PRO
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">Private Offline Personal Finance</p>
+              <p className="text-[11px] text-slate-400 hidden md:block truncate">Private Offline Personal Finance</p>
             </div>
           </div>
 
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#features" className="hover:text-emerald-400 transition-colors">Features</a>
             <a href="#preview" className="hover:text-emerald-400 transition-colors">Interactive Demo</a>
@@ -112,23 +116,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             <a href="#faq" className="hover:text-emerald-400 transition-colors">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <button
               onClick={onLaunchApp}
-              className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer"
+              className="px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
             >
-              <Globe className="w-4 h-4 text-emerald-400" />
-              <span>Launch Web App</span>
+              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0" />
+              <span className="hidden sm:inline">Launch Web App</span>
+              <span className="sm:hidden">Web App</span>
             </button>
 
             <a
               href="/PocketLedgerPRO.apk"
               download="PocketLedgerPRO.apk"
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-2 hover:-translate-y-0.5"
+              className="px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <Download className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Download APK</span>
-              <span className="text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono">36.2 MB</span>
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] flex-shrink-0" />
+              <span>APK</span>
+              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono">36.2 MB</span>
             </a>
           </div>
         </div>
