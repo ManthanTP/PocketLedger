@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useFinanceStore } from './store/useFinanceStore';
 import { Onboarding } from './components/Onboarding';
 import { PINLock } from './components/PINLock';
@@ -7,6 +8,7 @@ import { AddEntryModal } from './components/AddEntryModal';
 import { ToastContainer, AndroidNotificationShade } from './components/NotificationManager';
 import { useNotificationStore } from './store/useNotificationStore';
 import { AppIconFull } from './components/AppIcon';
+import { LandingPage } from './pages/LandingPage';
 
 // Pages
 import { Dashboard } from './pages/Dashboard';
@@ -30,6 +32,24 @@ function App() {
   } = useFinanceStore();
 
   const { activeDialog, closeDialog } = useNotificationStore();
+
+  const isNative = Capacitor.isNativePlatform();
+
+  // On Web, show Landing Page at root / unless navigating directly to #app or /app
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    if (isNative) return false; // Native Android APK always goes directly into the finance app!
+    return window.location.hash !== '#app' && window.location.pathname !== '/app';
+  });
+
+  // Listen for hash changes to navigate smoothly between Landing Page and Web App
+  useEffect(() => {
+    if (isNative) return;
+    const handleHash = () => {
+      setShowLanding(window.location.hash !== '#app' && window.location.pathname !== '/app');
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [isNative]);
 
   const [showSplash, setShowSplash] = useState(true);
   const [splashFade, setSplashFade] = useState(false);
@@ -84,6 +104,18 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
+
+  // Web Landing Page (Shown at / for web visitors, bypassed in Android APK)
+  if (showLanding) {
+    return (
+      <LandingPage
+        onLaunchApp={() => {
+          setShowLanding(false);
+          window.location.hash = '#app';
+        }}
+      />
+    );
+  }
 
   // Show a full-screen premium splash screen while loading DB
   if (showSplash) {
@@ -144,6 +176,36 @@ function App() {
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary font-sans antialiased transition-colors duration-300">
+      {/* Web-only navigation bar to download APK or return to Product Landing Page */}
+      {!isNative && (
+        <aside aria-label="Web App Banner" className="bg-[#0B1220] border-b border-white/[0.08] px-4 py-2 flex items-center justify-between z-30 sticky top-0 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-white font-display">Pocket Ledger Pro</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-bold uppercase tracking-wider border border-emerald-500/25">
+              Web Version
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/PocketLedgerPRO.apk"
+              download="PocketLedgerPRO.apk"
+              className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
+            >
+              Get Android APK (9.57 MB)
+            </a>
+            <button
+              onClick={() => {
+                setShowLanding(true);
+                window.location.hash = '';
+              }}
+              className="text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition cursor-pointer font-medium"
+            >
+              ← Product Page
+            </button>
+          </div>
+        </aside>
+      )}
+
       {/* Top banner warning if browser cookies/storage are disabled */}
       <noscript>
         <div className="bg-accent-red text-white text-xs font-bold py-2 px-4 flex items-center justify-center space-x-1">
