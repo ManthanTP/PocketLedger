@@ -708,7 +708,7 @@ export const Settings: React.FC = () => {
                     <span className="text-xs font-bold text-text-primary block font-display">Download Android APK</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent-green/15 text-accent-green font-bold">v1.0 PRO</span>
                   </div>
-                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (31.5 MB)</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (36.2 MB)</span>
                 </div>
               </div>
               <Download className="w-4 h-4 text-text-subtle hover:text-accent-green" />
@@ -1692,7 +1692,7 @@ export const Settings: React.FC = () => {
                     {[
                       { label: 'Version', value: '1.0.0 PRO' },
                       { label: 'Platform', value: 'Web & Android (Capacitor)' },
-                      { label: 'APK Package Size', value: '31.5 MB (Universal)' },
+                      { label: 'APK Package Size', value: '36.2 MB (Universal)' },
                       { label: 'Storage', value: '100% On-Device (IndexedDB)' },
                       { label: 'Internet', value: 'Not Required' },
                     ].map(item => (
