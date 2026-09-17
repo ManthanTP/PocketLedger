@@ -120,21 +120,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <button
               onClick={onLaunchApp}
-              className="px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+              title="Launch Web App"
+              className="p-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
             >
-              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0" />
-              <span className="hidden sm:inline">Launch Web App</span>
-              <span className="sm:hidden">Web App</span>
+              <Globe className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span className="hidden sm:inline">Web App</span>
             </button>
 
             <a
               href="/PocketLedgerPRO.apk"
               download="PocketLedgerPRO.apk"
-              className="px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:-translate-y-0.5 whitespace-nowrap"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] flex-shrink-0" />
               <span>APK</span>
-              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono">36.2 MB</span>
+              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono hidden sm:inline">36.2 MB</span>
             </a>
           </div>
         </div>
