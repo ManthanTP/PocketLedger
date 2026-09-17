@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { ArrowLeft, Edit2, Plus, Search, Trash2, ArrowUpRight, ArrowDownRight, ArrowRightLeft, X } from 'lucide-react';
+import { ArrowLeft, Edit2, Plus, Search, Trash2, ArrowUpRight, ArrowDownRight, ArrowRightLeft, X, FileText, Download, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Account, Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
+import { compileAccountReportData, exportAccountReportPDF, exportAccountReportCSV, type ReportDatePreset } from '../utils/reportGenerator';
+import { registerBackHandler } from '../utils/backButtonManager';
 
 export const AccountDetail: React.FC = () => {
   const {
@@ -31,6 +33,34 @@ export const AccountDetail: React.FC = () => {
   const [editName, setEditName] = useState<string>('');
   const [editType, setEditType] = useState<Account['type']>('Cash');
 
+  // Report modal state
+  const [isReportOpen, setIsReportOpen] = useState<boolean>(false);
+  const [reportPreset, setReportPreset] = useState<ReportDatePreset>('this-month');
+  const [customStart, setCustomStart] = useState<string>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+  });
+  const [customEnd, setCustomEnd] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  // Close report modal when mobile back button is pressed
+  useEffect(() => {
+    if (!isReportOpen) return;
+    return registerBackHandler(() => {
+      setIsReportOpen(false);
+      return true;
+    });
+  }, [isReportOpen]);
+
+  // Close edit modal when mobile back button is pressed
+  useEffect(() => {
+    if (!isEditOpen) return;
+    return registerBackHandler(() => {
+      setIsEditOpen(false);
+      return true;
+    });
+  }, [isEditOpen]);
+
   // Loading skeleton state
   const [loading, setLoading] = useState(true);
 
@@ -51,6 +81,50 @@ export const AccountDetail: React.FC = () => {
 
   const handleBack = () => {
     setSelectedAccount(null);
+  };
+
+  // Compute live report preview metrics
+  const reportData = useMemo(() => {
+    if (!selectedAccount) return null;
+    return compileAccountReportData({
+      accountId: selectedAccount.id,
+      preset: reportPreset,
+      customStartDate: customStart,
+      customEndDate: customEnd,
+      accounts,
+      transactions,
+      currency,
+    });
+  }, [selectedAccount, reportPreset, customStart, customEnd, accounts, transactions, currency]);
+
+  const handleDownloadPdf = async () => {
+    if (!selectedAccount || !reportData) return;
+    setIsGenerating(true);
+    try {
+      await exportAccountReportPDF(reportData, accounts);
+      setIsReportOpen(false);
+      showToast("PDF report generated successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to generate PDF report", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadCsv = async () => {
+    if (!selectedAccount || !reportData) return;
+    setIsGenerating(true);
+    try {
+      await exportAccountReportCSV(reportData, accounts);
+      setIsReportOpen(false);
+      showToast("CSV report exported successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to export CSV report", "error");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -174,20 +248,31 @@ export const AccountDetail: React.FC = () => {
             Account Details
           </h1>
         </div>
-        <button
-          id="account-detail-edit-btn"
-          onClick={() => setIsEditOpen(true)}
-          aria-label="Edit account settings"
-          className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-white/5 text-text-primary cursor-pointer"
-        >
-          <Edit2 className="w-5 h-5" />
-        </button>
+        <div className="flex items-center space-x-1">
+          <button
+            id="account-detail-report-btn"
+            onClick={() => setIsReportOpen(true)}
+            aria-label="Generate account report"
+            title="Generate Account Statement"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-white/5 text-accent-green hover:text-accent-green/80 cursor-pointer transition"
+          >
+            <FileText className="w-5 h-5" />
+          </button>
+          <button
+            id="account-detail-edit-btn"
+            onClick={() => setIsEditOpen(true)}
+            aria-label="Edit account settings"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-white/5 text-text-primary cursor-pointer"
+          >
+            <Edit2 className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       <div className="px-4 pt-4 max-w-lg mx-auto space-y-6">
         
         {/* Balance Summary Card */}
-        <section id="account-detail-worth-card" aria-label="Account worth card" className="bento-card-elevated p-6 text-center">
+        <section id="account-detail-worth-card" aria-label="Account worth card" className="bento-card-elevated p-6 text-center relative overflow-hidden">
           <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
             {selectedAccount.name}
           </span>
@@ -197,6 +282,17 @@ export const AccountDetail: React.FC = () => {
           <span className="text-[10px] text-text-subtle font-semibold uppercase tracking-wider block mt-1 font-body">
             {selectedAccount.type} Ledger
           </span>
+
+          {/* Quick statement download button */}
+          <div className="mt-4 pt-4 border-t border-border-custom/50 flex items-center justify-center">
+            <button
+              onClick={() => setIsReportOpen(true)}
+              className="px-4 py-2 rounded-xl bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/30 text-accent-green text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs active:scale-95"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Download Statement (PDF / CSV)</span>
+            </button>
+          </div>
         </section>
 
         {/* Balance Trend Line Graph */}
@@ -466,6 +562,155 @@ export const AccountDetail: React.FC = () => {
                 </button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {/* Account Statement / Report Modal Bottom Sheet */}
+      {isReportOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity duration-300">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-modal-title"
+            className="w-full max-w-lg bg-bg-surface border-t sm:border border-border-custom rounded-t-3xl sm:rounded-3xl p-5 space-y-5 glass-panel animate-slide-up max-h-[90vh] overflow-y-auto"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center pb-2 border-b border-border-custom">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-accent-green/10 text-accent-green flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 id="report-modal-title" className="text-sm font-bold text-text-primary font-display">
+                    Account Statement
+                  </h2>
+                  <p className="text-[11px] text-text-secondary">
+                    {selectedAccount.name} ({selectedAccount.type})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsReportOpen(false)}
+                aria-label="Close report dialog"
+                className="p-1.5 rounded-xl hover:bg-white/5 text-text-subtle hover:text-text-primary transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Date Range Selector */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-text-secondary uppercase tracking-wider block">
+                Select Date Range
+              </label>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {[
+                  { id: 'this-month', label: 'This Month' },
+                  { id: 'last-month', label: 'Last Month' },
+                  { id: 'this-year', label: 'This Year' },
+                  { id: 'last-year', label: 'Last Year' },
+                  { id: 'all', label: 'All Time' },
+                  { id: 'custom', label: 'Custom' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setReportPreset(item.id as ReportDatePreset)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-semibold transition cursor-pointer text-center ${
+                      reportPreset === item.id
+                        ? 'bg-accent-green text-bg-base font-bold shadow-xs'
+                        : 'bg-white/5 hover:bg-white/10 text-text-secondary border border-border-custom'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Pickers */}
+              {reportPreset === 'custom' && (
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="text-[10px] text-text-secondary font-medium block mb-1">From Date</label>
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={(e) => setCustomStart(e.target.value)}
+                      className="w-full min-h-[40px] px-3 py-1.5 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-text-secondary font-medium block mb-1">To Date</label>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={(e) => setCustomEnd(e.target.value)}
+                      className="w-full min-h-[40px] px-3 py-1.5 rounded-xl border border-border-custom bg-bg-base text-text-primary text-xs focus:outline-none focus:border-accent-green"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Live Statement Summary Preview */}
+            {reportData && (
+              <div className="bg-white/5 border border-border-custom/80 rounded-2xl p-4 space-y-3">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-text-subtle">Period</span>
+                  <span className="font-semibold text-text-primary">{reportData.periodLabel}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-border-custom/40">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-text-subtle uppercase">Opening Balance</span>
+                    <p className="font-bold text-text-primary">{currency}{reportData.openingBalance.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-text-subtle uppercase">Closing Balance</span>
+                    <p className="font-bold text-accent-green">{currency}{reportData.closingBalance.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-text-subtle uppercase">Total Inflow (+)</span>
+                    <p className="font-bold text-accent-green">+{currency}{reportData.totalIncome.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] text-text-subtle uppercase">Total Outflow (-)</span>
+                    <p className="font-bold text-accent-red">-{currency}{reportData.totalExpense.toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-text-secondary pt-1 border-t border-border-custom/40">
+                  <span>Transactions in Period</span>
+                  <span className="font-bold text-text-primary">{reportData.transactions.length} entries</span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isGenerating || !reportData}
+                onClick={handleDownloadPdf}
+                className="min-h-[44px] px-4 py-2.5 rounded-xl bg-accent-green hover:bg-accent-green/90 disabled:opacity-50 text-bg-base font-bold text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                <span>Download PDF</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isGenerating || !reportData}
+                onClick={handleDownloadCsv}
+                className="min-h-[44px] px-4 py-2.5 rounded-xl border border-border-custom bg-white/5 hover:bg-white/10 disabled:opacity-50 text-text-primary font-bold text-xs transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export CSV</span>
+              </button>
+            </div>
           </section>
         </div>
       )}

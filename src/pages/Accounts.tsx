@@ -5,6 +5,7 @@ import { Wallet, CreditCard, Landmark, Coins, HelpCircle, Plus, ChevronRight, X 
 import type { Account } from '../db/db';
 import { AccountDetail } from './AccountDetail';
 import { AppIconFull } from '../components/AppIcon';
+import { registerBackHandler } from '../utils/backButtonManager';
 
 export const Accounts: React.FC = () => {
   const {
@@ -25,6 +26,15 @@ export const Accounts: React.FC = () => {
 
   // Loading & Skeleton state
   const [loading, setLoading] = useState(true);
+
+  // Close Add Account modal when mobile back button is pressed
+  useEffect(() => {
+    if (!isOpenAddModal) return;
+    return registerBackHandler(() => {
+      setIsOpenAddModal(false);
+      return true;
+    });
+  }, [isOpenAddModal]);
 
   useEffect(() => {
     setLoading(true);

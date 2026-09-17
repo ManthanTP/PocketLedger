@@ -3,6 +3,7 @@ import { useFinanceStore } from '../store/useFinanceStore';
 import { Search, X, SlidersHorizontal, ArrowUpRight, ArrowDownRight, ArrowRightLeft } from 'lucide-react';
 import type { Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
+import { registerBackHandler } from '../utils/backButtonManager';
 
 export const Transactions: React.FC = () => {
   const {
@@ -20,6 +21,15 @@ export const Transactions: React.FC = () => {
   const [filterAccount, setFilterAccount] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [showFiltersPanel, setShowFiltersPanel] = useState<boolean>(false);
+
+  // Close filters panel when mobile back button is pressed
+  useEffect(() => {
+    if (!showFiltersPanel) return;
+    return registerBackHandler(() => {
+      setShowFiltersPanel(false);
+      return true;
+    });
+  }, [showFiltersPanel]);
 
   // Loading & Skeleton state
   const [loading, setLoading] = useState(true);

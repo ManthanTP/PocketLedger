@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User, Smartphone, Download, Info, ExternalLink } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 import { exportFile } from '../utils/nativeFileExport';
 
-type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile';
+type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile' | 'about';
 
 export const Settings: React.FC = () => {
   const {
@@ -451,6 +451,7 @@ export const Settings: React.FC = () => {
               {activePanel === 'goals' && 'Savings Targets'}
               {activePanel === 'guide' && 'User & Feature Guide'}
               {activePanel === 'profile' && 'User Profile'}
+              {activePanel === 'about' && 'About Pocket Ledger'}
             </h1>
           </div>
           <div className="w-10 h-10" />
@@ -638,6 +639,46 @@ export const Settings: React.FC = () => {
                 </div>
               </div>
             </button>
+
+            {/* About Option */}
+            <button
+              id="settings-menu-about"
+              onClick={() => setActivePanel('about')}
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 bg-accent-violet/10 text-accent-violet rounded-xl" aria-hidden="true">
+                  <Info className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-primary block font-display">About</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Version, credits & attribution</span>
+                </div>
+              </div>
+            </button>
+
+            {/* Download APK Option */}
+            <a
+              id="settings-menu-download-apk"
+              href="/download.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left no-underline"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="p-2.5 bg-accent-green/10 text-accent-green rounded-xl" aria-hidden="true">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-bold text-text-primary block font-display">Download Android APK</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent-green/15 text-accent-green font-bold">v1.0 PRO</span>
+                  </div>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (4.75 MB)</span>
+                </div>
+              </div>
+              <Download className="w-4 h-4 text-text-subtle hover:text-accent-green" />
+            </a>
           </nav>
         ) : (
           /* Sub panels */
@@ -1499,6 +1540,69 @@ export const Settings: React.FC = () => {
                         Secure your data in <strong>Settings &gt; App Security</strong>. Set a 4 to 6 digit passcode PIN. Once active, you can authenticate on launch using either the keypad (verifies instantly) or the interactive fingerprint scan simulation.
                       </p>
                     )}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* 8. Sub-panel About */}
+            {activePanel === 'about' && (
+              <section id="settings-about-panel" aria-labelledby="settings-title" className="bento-card text-left space-y-5">
+                {/* App Identity */}
+                <div className="flex flex-col items-center text-center space-y-3 py-4">
+                  <AppIconFull size={64} className="w-16 h-16 rounded-2xl shadow-lg" />
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-extrabold text-text-primary font-display tracking-tight">Pocket Ledger Pro</h2>
+                    <span className="inline-block text-[9px] px-2 py-0.5 rounded-full bg-accent-green/15 text-accent-green font-bold border border-accent-green/20 uppercase tracking-wider">v1.0.0 PRO</span>
+                  </div>
+                  <p className="text-[11px] text-text-secondary leading-relaxed max-w-[260px] font-body">
+                    Privacy-first, 100% offline personal finance ledger with bank-grade security.
+                  </p>
+                </div>
+
+                <div className="border-t border-border-custom" />
+
+                {/* Copyright & Attribution */}
+                <div className="space-y-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wider">Copyright</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-border-custom space-y-2">
+                    <p className="text-xs font-bold text-text-primary font-display">
+                      © {new Date().getFullYear()} Manthan Patel. All rights reserved.
+                    </p>
+                    <p className="text-[11px] text-text-secondary font-body">
+                      Created by <span className="text-text-primary font-semibold">Manthan Patel</span>
+                    </p>
+                    <a
+                      href="https://manthantp-portfolio.vercel.app"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-1.5 text-[11px] text-accent-green hover:text-accent-green-light font-semibold transition-colors duration-150 no-underline"
+                    >
+                      <span>manthantp-portfolio.vercel.app</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="border-t border-border-custom" />
+
+                {/* App Details */}
+                <div className="space-y-2.5">
+                  <span className="text-[10px] text-text-subtle uppercase font-bold tracking-wider">App Details</span>
+                  <div className="space-y-2">
+                    {[
+                      { label: 'Version', value: '1.0.0 PRO' },
+                      { label: 'Platform', value: 'Web & Android (Capacitor)' },
+                      { label: 'Storage', value: '100% On-Device (IndexedDB)' },
+                      { label: 'Internet', value: 'Not Required' },
+                    ].map(item => (
+                      <div key={item.label} className="flex justify-between items-center py-1.5 text-[11px]">
+                        <span className="text-text-subtle font-medium">{item.label}</span>
+                        <span className="text-text-secondary font-semibold">{item.value}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </section>

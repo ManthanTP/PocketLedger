@@ -17,6 +17,7 @@ import { Settings } from './pages/Settings';
 import { CashBook } from './pages/CashBook';
 
 import { ShieldAlert } from 'lucide-react';
+import { initBackButtonListener, recordTabChange } from './utils/backButtonManager';
 
 function App() {
   const {
@@ -37,6 +38,17 @@ function App() {
   useEffect(() => {
     init();
   }, [init]);
+
+  // Initialize Capacitor Android & Web hardware back button handling
+  useEffect(() => {
+    const unbind = initBackButtonListener();
+    return () => unbind();
+  }, []);
+
+  // Track tab history for back navigation
+  useEffect(() => {
+    recordTabChange(activeTab);
+  }, [activeTab]);
 
   // Handle splash screen fade-out
   useEffect(() => {
