@@ -1,34 +1,45 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="fav-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#10B981" />
-      <stop offset="100%" stop-color="#059669" />
+    <linearGradient id="logo-gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#10B981" />
     </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
   </defs>
 
-  <!-- Vibrant Emerald Container: High-contrast & beautiful on both dark and light browser tabs -->
-  <rect x="24" y="24" width="464" height="464" rx="120" fill="url(#fav-bg)" />
+  <!-- Dark Navy APK Launcher Background -->
+  <rect width="512" height="512" rx="108" fill="#0B1220" />
 
-  <!-- Crisp White High-Contrast Pocket Ledger P & Trend Growth Arrow -->
-  <path
-    d="M 180 140 H 290 C 335 140 365 170 365 215 C 365 260 335 290 290 290 H 180 V 370"
-    stroke="#FFFFFF"
-    stroke-width="44"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M 180 350 L 250 270 L 305 325 L 390 230"
-    stroke="#FFFFFF"
-    stroke-width="44"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M 330 230 H 390 V 290"
-    stroke="#FFFFFF"
-    stroke-width="44"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <!-- APK Logo Mark: Emerald Glowing P-Arrow Chart -->
+  <g transform="translate(85.3, 85.3) scale(0.667)" filter="url(#glow)">
+    <!-- Loop & Stem of the P -->
+    <path
+      d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
+      stroke="url(#logo-gradient)"
+      stroke-width="34"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Zigzag Chart Line ending in Arrow -->
+    <path
+      d="M 185 340 L 255 260 L 305 310 L 395 220"
+      stroke="url(#logo-gradient)"
+      stroke-width="34"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Arrow Head -->
+    <path
+      d="M 335 220 H 395 V 280"
+      stroke="url(#logo-gradient)"
+      stroke-width="34"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
 </svg>

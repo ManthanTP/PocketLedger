@@ -3,13 +3,14 @@ import React from 'react';
 interface AppIconProps {
   size?: number;
   className?: string;
+  showText?: boolean;
 }
 
 /**
- * 1. Full-color icon on dark navy background (#0B1220) with exact P-logo layout
- * Suitable for Splash Screen, App Store, and launcher preview.
+ * 1. Full-color icon on dark navy background (#0B1220) with exact APK P-logo layout.
+ * Matches the official PocketLedger Android APK launcher icon.
  */
-export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = '' }) => {
+export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = '', showText = false }) => {
   return (
     <svg
       width={size}
@@ -17,9 +18,9 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
       viewBox="0 0 512 512"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`rounded-[100px] shadow-2xl ${className}`}
+      className={`rounded-[22%] shadow-xl ${className}`}
       style={{ background: '#0B1220' }}
-      aria-label="Pocket-Ledger.pro Logo"
+      aria-label="PocketLedger Logo"
     >
       <defs>
         <linearGradient id="logo-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -27,18 +28,21 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
           <stop offset="100%" stopColor="#10B981" />
         </linearGradient>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="12" result="blur" />
+          <feGaussianBlur stdDeviation="8" result="blur" />
           <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
       </defs>
 
-      {/* Stylized Geometric P Logo Mark with glowing chart-arrow */}
-      <g filter="url(#glow)">
+      {/* Stylized Geometric P Logo Mark with glowing chart-arrow matching APK */}
+      <g
+        transform={showText ? 'translate(64, 36) scale(0.75)' : 'translate(85.3, 85.3) scale(0.667)'}
+        filter="url(#glow)"
+      >
         {/* Loop & Stem of the P */}
         <path
           d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
           stroke="url(#logo-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -47,7 +51,7 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
         <path
           d="M 185 340 L 255 260 L 305 310 L 395 220"
           stroke="url(#logo-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -56,25 +60,27 @@ export const AppIconFull: React.FC<AppIconProps> = ({ size = 512, className = ''
         <path
           d="M 335 220 H 395 V 280"
           stroke="url(#logo-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       </g>
 
-      {/* Mixed case App Name Wordmark */}
-      <text
-        x="256"
-        y="440"
-        fill="#FFFFFF"
-        fontFamily="'Space Grotesk', sans-serif"
-        fontWeight="bold"
-        fontSize="46"
-        letterSpacing="-0.5"
-        textAnchor="middle"
-      >
-        Pocket-Ledger.pro
-      </text>
+      {/* Optional Wordmark matching APK (only rendered if explicitly requested) */}
+      {showText && (
+        <text
+          x="256"
+          y="445"
+          fill="#FFFFFF"
+          fontFamily="'Segoe UI', Roboto, sans-serif"
+          fontWeight="bold"
+          fontSize="44"
+          letterSpacing="-0.5"
+          textAnchor="middle"
+        >
+          PocketLedger
+        </text>
+      )}
     </svg>
   );
 };
@@ -88,17 +94,17 @@ export const AppIconMonochrome: React.FC<AppIconProps> = ({ size = 24, className
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 512 512"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Pocket-Ledger.pro Notification Icon"
+      aria-label="PocketLedger Notification Icon"
     >
-      <g transform="translate(1, 1) scale(0.19)">
+      <g transform="translate(85.3, 85.3) scale(0.667)">
         <path
           d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
           stroke="#FFFFFF"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -106,7 +112,7 @@ export const AppIconMonochrome: React.FC<AppIconProps> = ({ size = 24, className
         <path
           d="M 185 340 L 255 260 L 305 310 L 395 220"
           stroke="#FFFFFF"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -114,7 +120,7 @@ export const AppIconMonochrome: React.FC<AppIconProps> = ({ size = 24, className
         <path
           d="M 335 220 H 395 V 280"
           stroke="#FFFFFF"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -136,9 +142,8 @@ export const AppIconAdaptiveForeground: React.FC<AppIconProps> = ({ size = 512, 
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Pocket-Ledger.pro Adaptive Icon Foreground"
+      aria-label="PocketLedger Adaptive Icon Foreground"
     >
-      {/* Gradients */}
       <defs>
         <linearGradient id="adaptive-gradient" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#34D399" />
@@ -146,11 +151,11 @@ export const AppIconAdaptiveForeground: React.FC<AppIconProps> = ({ size = 512, 
         </linearGradient>
       </defs>
 
-      <g transform="translate(38.4, 38.4) scale(0.85)">
+      <g transform="translate(85.3, 85.3) scale(0.667)">
         <path
           d="M 185 150 H 290 C 330 150 360 180 360 220 C 360 260 330 290 290 290 H 185 V 360"
           stroke="url(#adaptive-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -158,7 +163,7 @@ export const AppIconAdaptiveForeground: React.FC<AppIconProps> = ({ size = 512, 
         <path
           d="M 185 340 L 255 260 L 305 310 L 395 220"
           stroke="url(#adaptive-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -166,7 +171,7 @@ export const AppIconAdaptiveForeground: React.FC<AppIconProps> = ({ size = 512, 
         <path
           d="M 335 220 H 395 V 280"
           stroke="url(#adaptive-gradient)"
-          strokeWidth="32"
+          strokeWidth="34"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
