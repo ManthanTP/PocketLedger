@@ -6,6 +6,7 @@ import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 import { exportFile } from '../utils/nativeFileExport';
 import { BiometricService, type BiometricStatus } from '../services/biometricService';
+import { openLandingPageInExternalBrowser } from '../utils/externalOpener';
 
 type SubPanel = 'none' | 'categories' | 'security' | 'backup' | 'currency' | 'theme' | 'budgets' | 'reminders' | 'goals' | 'guide' | 'profile' | 'about';
 
@@ -692,12 +693,11 @@ export const Settings: React.FC = () => {
             </button>
 
             {/* Download APK Option */}
-            <a
+            <button
+              type="button"
               id="settings-menu-download-apk"
-              href="/download.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left no-underline"
+              onClick={() => openLandingPageInExternalBrowser()}
+              className="w-full flex items-center justify-between p-4 min-h-[48px] hover:bg-white/5 transition cursor-pointer text-left"
             >
               <div className="flex items-center space-x-3.5">
                 <div className="p-2.5 bg-accent-green/10 text-accent-green rounded-xl" aria-hidden="true">
@@ -711,8 +711,8 @@ export const Settings: React.FC = () => {
                   <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (36.2 MB)</span>
                 </div>
               </div>
-              <Download className="w-4 h-4 text-text-subtle hover:text-accent-green" />
-            </a>
+              <ExternalLink className="w-4 h-4 text-text-subtle hover:text-accent-green" />
+            </button>
           </nav>
         ) : (
           /* Sub panels */
@@ -1675,7 +1675,11 @@ export const Settings: React.FC = () => {
                       href="https://manthantp-portfolio.vercel.app"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1.5 text-[11px] text-accent-green hover:text-accent-green-light font-semibold transition-colors duration-150 no-underline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openLandingPageInExternalBrowser('https://manthantp-portfolio.vercel.app');
+                      }}
+                      className="inline-flex items-center space-x-1.5 text-[11px] text-accent-green hover:text-accent-green-light font-semibold transition-colors duration-150 no-underline cursor-pointer"
                     >
                       <span>manthantp-portfolio.vercel.app</span>
                       <ExternalLink className="w-3 h-3" />

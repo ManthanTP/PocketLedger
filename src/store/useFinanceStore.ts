@@ -271,7 +271,18 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       }
     }
 
-    set({ accounts: updatedAccounts, transactions, categories });
+    // Keep selectedAccount in sync with freshly calculated balance
+    const currentSelected = get().selectedAccount;
+    const refreshedSelected = currentSelected
+      ? updatedAccounts.find((a) => a.id === currentSelected.id) || currentSelected
+      : null;
+
+    set({
+      accounts: updatedAccounts,
+      transactions,
+      categories,
+      selectedAccount: refreshedSelected,
+    });
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),

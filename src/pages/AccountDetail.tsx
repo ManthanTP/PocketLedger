@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { ArrowLeft, Edit2, Plus, Search, Trash2, ArrowUpRight, ArrowDownRight, ArrowRightLeft, X, FileText, Download, Loader2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Plus, Search, Trash2, ArrowUpRight, ArrowDownRight, ArrowRightLeft, X, FileText, Download, Loader2, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Account, Transaction } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
@@ -14,6 +14,7 @@ export const AccountDetail: React.FC = () => {
     selectedAccount,
     setSelectedAccount,
     transactions,
+    fetchData,
     updateAccount,
     deleteAccount,
     openAddModal,
@@ -70,14 +71,35 @@ export const AccountDetail: React.FC = () => {
     return () => clearTimeout(timer);
   }, [dateRange, filterType]);
 
-  useEffect(() => {
-    if (selectedAccount) {
-      setEditName(selectedAccount.name);
-      setEditType(selectedAccount.type);
-    }
-  }, [selectedAccount]);
+  // Live reactive account derived directly from accounts array in the store
+  const activeAccount = useMemo(() => {
+    if (!selectedAccount) return null;
+    return accounts.find((a) => a.id === selectedAccount.id) || selectedAccount;
+  }, [accounts, selectedAccount]);
 
-  if (!selectedAccount) return null;
+  useEffect(() => {
+    if (activeAccount) {
+      setEditName(activeAccount.name);
+      setEditType(activeAccount.type);
+    }
+  }, [activeAccount]);
+
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchData();
+      showToast("Account balance refreshed", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to refresh balance", "error");
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 450);
+    }
+  };
+
+  if (!activeAccount) return null;
 
   const handleBack = () => {
     setSelectedAccount(null);
@@ -85,9 +107,9 @@ export const AccountDetail: React.FC = () => {
 
   // Compute live report preview metrics
   const reportData = useMemo(() => {
-    if (!selectedAccount) return null;
+    if (!activeAccount) return null;
     return compileAccountReportData({
-      accountId: selectedAccount.id,
+      accountId: activeAccount.id,
       preset: reportPreset,
       customStartDate: customStart,
       customEndDate: customEnd,
@@ -95,10 +117,10 @@ export const AccountDetail: React.FC = () => {
       transactions,
       currency,
     });
-  }, [selectedAccount, reportPreset, customStart, customEnd, accounts, transactions, currency]);
+  }, [activeAccount, reportPreset, customStart, customEnd, accounts, transactions, currency]);
 
   const handleDownloadPdf = async () => {
-    if (!selectedAccount || !reportData) return;
+    if (!activeAccount || !reportData) return;
     setIsGenerating(true);
     try {
       await exportAccountReportPDF(reportData, accounts);
@@ -113,7 +135,7 @@ export const AccountDetail: React.FC = () => {
   };
 
   const handleDownloadCsv = async () => {
-    if (!selectedAccount || !reportData) return;
+    if (!activeAccount || !reportData) return;
     setIsGenerating(true);
     try {
       await exportAccountReportCSV(reportData, accounts);
@@ -129,31 +151,59 @@ export const AccountDetail: React.FC = () => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editName.trim()) return;
-    await updateAccount(selectedAccount.id, editName.trim(), editType);
+    if (!activeAccount || !editName.trim()) return;
+    await updateAccount(activeAccount.id, editName.trim(), editType);
     setIsEditOpen(false);
     showToast(`Account updated: "${editName.trim()}"`, "success");
   };
 
   const handleDelete = () => {
+    if (!activeAccount) return;
     showDialog({
       title: "Delete Account?",
-      message: `Are you sure you want to delete this account? WARNING: This will permanently delete the account "${selectedAccount.name}" and ALL its transaction history. This cannot be undone.`,
+      message: `Are you sure you want to delete this account? WARNING: This will permanently delete the account "${activeAccount.name}" and ALL its transaction history. This cannot be undone.`,
       type: "confirm",
       confirmLabel: "Delete",
       cancelLabel: "Cancel",
       onConfirm: async () => {
-        await deleteAccount(selectedAccount.id);
+        await deleteAccount(activeAccount.id);
         setIsEditOpen(false);
-        showToast(`Account "${selectedAccount.name}" deleted`, "success");
+        showToast(`Account "${activeAccount.name}" deleted`, "success");
       }
     });
   };
 
   // Filter transactions for this account
-  const accountTxs = transactions.filter(
-    (tx) => tx.accountId === selectedAccount.id || tx.toAccountId === selectedAccount.id
-  );
+  const accountTxs = useMemo(() => {
+    if (!activeAccount) return [];
+    return transactions.filter(
+      (tx) => tx.accountId === activeAccount.id || tx.toAccountId === activeAccount.id
+    );
+  }, [transactions, activeAccount]);
+
+  // Real-time recalculation of totalIn, totalOut, and net current balance
+  const { totalIn, totalOut, liveBalance } = useMemo(() => {
+    if (!activeAccount) return { totalIn: 0, totalOut: 0, liveBalance: 0 };
+    let inSum = 0;
+    let outSum = 0;
+
+    accountTxs.forEach((tx) => {
+      if (tx.type === 'income' && tx.accountId === activeAccount.id) {
+        inSum += tx.amount;
+      } else if (tx.type === 'expense' && tx.accountId === activeAccount.id) {
+        outSum += tx.amount;
+      } else if (tx.type === 'transfer') {
+        if (tx.accountId === activeAccount.id) {
+          outSum += tx.amount; // Transfer out of this account
+        } else if (tx.toAccountId === activeAccount.id) {
+          inSum += tx.amount; // Transfer into this account
+        }
+      }
+    });
+
+    const liveBalance = activeAccount.openingBalance + inSum - outSum;
+    return { totalIn: inSum, totalOut: outSum, liveBalance };
+  }, [activeAccount, accountTxs]);
 
   // Apply filters
   const filteredTxs = accountTxs.filter((tx) => {
@@ -164,8 +214,8 @@ export const AccountDetail: React.FC = () => {
 
     // 2. Type filter
     let typeMatch = true;
-    if (filterType === 'income') typeMatch = tx.type === 'income' && tx.accountId === selectedAccount.id;
-    if (filterType === 'expense') typeMatch = tx.type === 'expense' && tx.accountId === selectedAccount.id;
+    if (filterType === 'income') typeMatch = tx.type === 'income' && tx.accountId === activeAccount.id;
+    if (filterType === 'expense') typeMatch = tx.type === 'expense' && tx.accountId === activeAccount.id;
     if (filterType === 'transfer') typeMatch = tx.type === 'transfer';
 
     // 3. Date range filter
@@ -186,7 +236,7 @@ export const AccountDetail: React.FC = () => {
   // Sort oldest first to calculate progressive balance
   const chronologicalTxs = [...accountTxs].reverse();
   
-  let runningBalance = selectedAccount.openingBalance;
+  let runningBalance = activeAccount.openingBalance;
   const chartDataMap: { [date: string]: number } = {};
   
   const initialDate = chronologicalTxs.length > 0 
@@ -197,14 +247,14 @@ export const AccountDetail: React.FC = () => {
 
   chronologicalTxs.forEach((tx) => {
     let amtChange = 0;
-    if (tx.type === 'income' && tx.accountId === selectedAccount.id) {
+    if (tx.type === 'income' && tx.accountId === activeAccount.id) {
       amtChange = tx.amount;
-    } else if (tx.type === 'expense' && tx.accountId === selectedAccount.id) {
+    } else if (tx.type === 'expense' && tx.accountId === activeAccount.id) {
       amtChange = -tx.amount;
     } else if (tx.type === 'transfer') {
-      if (tx.accountId === selectedAccount.id) {
+      if (tx.accountId === activeAccount.id) {
         amtChange = -tx.amount; // Transfer out of this account
-      } else if (tx.toAccountId === selectedAccount.id) {
+      } else if (tx.toAccountId === activeAccount.id) {
         amtChange = tx.amount; // Transfer into this account
       }
     }
@@ -250,6 +300,16 @@ export const AccountDetail: React.FC = () => {
         </div>
         <div className="flex items-center space-x-1">
           <button
+            id="account-detail-refresh-btn"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh account balance and data"
+            title="Refresh Account Data"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:bg-white/5 text-text-secondary hover:text-accent-green cursor-pointer transition active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-accent-green' : ''}`} />
+          </button>
+          <button
             id="account-detail-report-btn"
             onClick={() => setIsReportOpen(true)}
             aria-label="Generate account report"
@@ -273,18 +333,52 @@ export const AccountDetail: React.FC = () => {
         
         {/* Balance Summary Card */}
         <section id="account-detail-worth-card" aria-label="Account worth card" className="bento-card-elevated p-6 text-center relative overflow-hidden">
-          <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
-            {selectedAccount.name}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider font-body">
+              {activeAccount.name}
+            </span>
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="text-[10px] text-text-subtle hover:text-accent-green flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
+              title="Manual Refresh"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-accent-green' : ''}`} />
+              <span className="font-semibold">Refresh</span>
+            </button>
+          </div>
+
           <h2 className="text-3xl font-extrabold text-text-primary tracking-tight mt-1 font-display">
-            {formatAmount(selectedAccount.currentBalance)}
+            {formatAmount(liveBalance)}
           </h2>
           <span className="text-[10px] text-text-subtle font-semibold uppercase tracking-wider block mt-1 font-body">
-            {selectedAccount.type} Ledger
+            {activeAccount.type} Ledger
           </span>
 
+          {/* Quick Metrics Breakdown: Opening | Total In | Total Out */}
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border-custom/50 text-center">
+            <div className="p-2 rounded-xl bg-white/[0.02]">
+              <span className="text-[9px] uppercase font-bold text-text-subtle block tracking-wider">Opening</span>
+              <span className="text-xs font-bold text-text-primary mt-0.5 block truncate">
+                {formatAmount(activeAccount.openingBalance)}
+              </span>
+            </div>
+            <div className="p-2 rounded-xl bg-accent-green/5">
+              <span className="text-[9px] uppercase font-bold text-accent-green block tracking-wider">Total In</span>
+              <span className="text-xs font-bold text-accent-green mt-0.5 block truncate">
+                +{formatAmount(totalIn)}
+              </span>
+            </div>
+            <div className="p-2 rounded-xl bg-accent-red/5">
+              <span className="text-[9px] uppercase font-bold text-accent-red block tracking-wider">Total Out</span>
+              <span className="text-xs font-bold text-accent-red mt-0.5 block truncate">
+                -{formatAmount(totalOut)}
+              </span>
+            </div>
+          </div>
+
           {/* Quick statement download button */}
-          <div className="mt-4 pt-4 border-t border-border-custom/50 flex items-center justify-center">
+          <div className="mt-3 flex items-center justify-center">
             <button
               onClick={() => setIsReportOpen(true)}
               className="px-4 py-2 rounded-xl bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/30 text-accent-green text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs active:scale-95"
@@ -392,10 +486,10 @@ export const AccountDetail: React.FC = () => {
                   const fromAcc = accounts.find(a => a.id === tx.accountId);
                   const toAcc = tx.toAccountId ? accounts.find(a => a.id === tx.toAccountId) : null;
                   
-                  const isIncome = tx.type === 'income' && tx.accountId === selectedAccount.id;
-                  const isExpense = tx.type === 'expense' && tx.accountId === selectedAccount.id;
+                  const isIncome = tx.type === 'income' && tx.accountId === activeAccount.id;
+                  const isExpense = tx.type === 'expense' && tx.accountId === activeAccount.id;
                   const isTransfer = tx.type === 'transfer';
-                  const isTransferOut = isTransfer && tx.accountId === selectedAccount.id;
+                  const isTransferOut = isTransfer && tx.accountId === activeAccount.id;
 
                   return (
                     <article
@@ -474,7 +568,7 @@ export const AccountDetail: React.FC = () => {
       {/* Floating Add Transaction Button for this account */}
       <button
         id="account-detail-fab-add"
-        onClick={() => openAddModal(selectedAccount.id)}
+        onClick={() => openAddModal(activeAccount.id)}
         className="fixed bottom-20 right-4 z-20 w-12.5 h-12.5 rounded-2xl bg-accent-green text-bg-base flex items-center justify-center shadow-[0_4px_12px_rgba(16,185,129,0.25)] hover:scale-105 transition cursor-pointer"
         aria-label="Add Transaction to Account"
       >
@@ -586,7 +680,7 @@ export const AccountDetail: React.FC = () => {
                     Account Statement
                   </h2>
                   <p className="text-[11px] text-text-secondary">
-                    {selectedAccount.name} ({selectedAccount.type})
+                    {activeAccount.name} ({activeAccount.type})
                   </p>
                 </div>
               </div>
