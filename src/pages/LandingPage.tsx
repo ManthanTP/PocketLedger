@@ -134,7 +134,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] flex-shrink-0" />
               <span>APK</span>
-              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono hidden sm:inline">36.2 MB</span>
+              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono hidden sm:inline">38.79 MB</span>
             </a>
           </div>
         </div>
@@ -172,7 +172,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             >
               <Download className="w-5 h-5 stroke-[2.5] group-hover:translate-y-0.5 transition-transform" />
               <span>Download Android APK</span>
-              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">36.2 MB</span>
+              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">38.79 MB</span>
             </a>
 
             <button
@@ -191,7 +191,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               v1.0.0 PRO (Release)
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Size: <strong className="text-slate-200 font-semibold">36.2 MB</strong></span>
+            <span>Size: <strong className="text-slate-200 font-semibold">38.79 MB</strong></span>
             <span className="hidden sm:inline">•</span>
             <span>Android 8.0+ & Web</span>
             <span className="hidden sm:inline">•</span>
@@ -590,7 +590,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               </div>
               <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-xs text-slate-400">Build Size</div>
-                <div className="text-base font-bold text-emerald-400 mt-1 font-mono">36.2 MB</div>
+                <div className="text-base font-bold text-emerald-400 mt-1 font-mono">38.79 MB</div>
               </div>
               <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-xs text-slate-400">Release Version</div>
@@ -617,7 +617,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 <div className="flex gap-4">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">1</div>
                   <div className="text-xs text-slate-300 leading-relaxed">
-                    Click <strong>Download Android APK (36.2 MB)</strong> to download the APK directly to your phone.
+                    Click <strong>Download Android APK (38.79 MB)</strong> to download the APK directly to your phone.
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -686,7 +686,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-base shadow-xl shadow-emerald-500/25 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Download className="w-5 h-5 stroke-[2.5]" />
-                <span>Download APK (36.2 MB)</span>
+                <span>Download APK (38.79 MB)</span>
               </a>
 
               <button
@@ -752,7 +752,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               >
                 <Download className="w-4 h-4 stroke-[2.5]" />
                 <span>APK</span>
-                <span className="text-[10px] font-mono opacity-70">36.2 MB</span>
+                <span className="text-[10px] font-mono opacity-70">38.79 MB</span>
               </a>
             </div>
           </div>
