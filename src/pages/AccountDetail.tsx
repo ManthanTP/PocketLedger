@@ -99,8 +99,6 @@ export const AccountDetail: React.FC = () => {
     }
   };
 
-  if (!activeAccount) return null;
-
   const handleBack = () => {
     setSelectedAccount(null);
   };
@@ -214,8 +212,8 @@ export const AccountDetail: React.FC = () => {
 
     // 2. Type filter
     let typeMatch = true;
-    if (filterType === 'income') typeMatch = tx.type === 'income' && tx.accountId === activeAccount.id;
-    if (filterType === 'expense') typeMatch = tx.type === 'expense' && tx.accountId === activeAccount.id;
+    if (filterType === 'income') typeMatch = tx.type === 'income' && tx.accountId === activeAccount?.id;
+    if (filterType === 'expense') typeMatch = tx.type === 'expense' && tx.accountId === activeAccount?.id;
     if (filterType === 'transfer') typeMatch = tx.type === 'transfer';
 
     // 3. Date range filter
@@ -236,7 +234,7 @@ export const AccountDetail: React.FC = () => {
   // Sort oldest first to calculate progressive balance
   const chronologicalTxs = [...accountTxs].reverse();
   
-  let runningBalance = activeAccount.openingBalance;
+  let runningBalance = activeAccount?.openingBalance || 0;
   const chartDataMap: { [date: string]: number } = {};
   
   const initialDate = chronologicalTxs.length > 0 
@@ -247,11 +245,11 @@ export const AccountDetail: React.FC = () => {
 
   chronologicalTxs.forEach((tx) => {
     let amtChange = 0;
-    if (tx.type === 'income' && tx.accountId === activeAccount.id) {
+    if (activeAccount && tx.type === 'income' && tx.accountId === activeAccount.id) {
       amtChange = tx.amount;
-    } else if (tx.type === 'expense' && tx.accountId === activeAccount.id) {
+    } else if (activeAccount && tx.type === 'expense' && tx.accountId === activeAccount.id) {
       amtChange = -tx.amount;
-    } else if (tx.type === 'transfer') {
+    } else if (activeAccount && tx.type === 'transfer') {
       if (tx.accountId === activeAccount.id) {
         amtChange = -tx.amount; // Transfer out of this account
       } else if (tx.toAccountId === activeAccount.id) {
@@ -278,6 +276,8 @@ export const AccountDetail: React.FC = () => {
     setSelectedTransaction(tx);
     openAddModal(tx.accountId, tx.type);
   };
+
+  if (!activeAccount) return null;
 
   return (
     <div className="pb-24 transition-all duration-300">

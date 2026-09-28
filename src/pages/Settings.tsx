@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User, Smartphone, Download, Info, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User, Smartphone, Info, ExternalLink } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 import { exportFile } from '../utils/nativeFileExport';
