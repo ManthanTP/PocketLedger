@@ -128,7 +128,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             <a href="#demo" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Watch Product Demo</a>
             <a href="#specs" className="hover:text-emerald-400 transition-colors whitespace-nowrap">APK Specs</a>
             <a href="#faq" className="hover:text-emerald-400 transition-colors whitespace-nowrap">FAQ</a>
-            <a href="/download.html" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Download Page</a>
+            <a href="/download.html" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Download</a>
           </nav>
 
           {/* Action Buttons */}
@@ -808,11 +808,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               <div className="flex items-center gap-3">
                 <AppIconFull size={36} className="rounded-xl shadow-lg shadow-emerald-500/10" />
                 <div>
-                  <span className="font-display font-extrabold text-lg text-white tracking-tight">Pocket Ledger Pro</span>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">v1.0 PRO</span>
-                    <span className="text-[10px] text-slate-500 font-medium">Private Offline Finance</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="font-display font-extrabold text-base sm:text-lg text-white tracking-tight whitespace-nowrap">
+                      Pocket Ledger
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+                      PRO
+                    </span>
                   </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Private Offline Personal Finance</p>
                 </div>
               </div>
             </div>
@@ -835,7 +839,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 FAQ
               </a>
               <a href="/download.html" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
-                Download Page
+                Download
               </a>
             </div>
 
