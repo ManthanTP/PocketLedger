@@ -104,4 +104,65 @@ describe('Account Detail Balance Update & External Browser Opener Tests', () => 
     assert.equal(openedUrl, OFFICIAL_LANDING_PAGE_URL, 'Should open the official landing page URL');
     assert.ok(targetWindow === '_system' || targetWindow === '_blank', 'Target should be external (_system or _blank)');
   });
+
+  test('3. Rename existing category updates transactions, budgets, and prevents duplicates', async () => {
+    const store = useFinanceStore.getState();
+
+    // 1. Add account and transaction under 'Food'
+    await store.addAccount('Card Account', 'Credit Card', 5000);
+    const cardAcc = useFinanceStore.getState().accounts.find(a => a.name === 'Card Account')!;
+
+    await store.addTransaction({
+      accountId: cardAcc.id,
+      amount: 450,
+      type: 'expense',
+      date: '2026-09-28',
+      notes: 'Dinner at restaurant',
+      category: 'Food',
+    });
+
+    // Set a budget for 'Food'
+    store.setBudget('Food', 3000);
+    assert.equal(useFinanceStore.getState().budgets['Food'], 3000);
+
+    // Find 'Food' category
+    const foodCat = useFinanceStore.getState().categories.find(c => c.name === 'Food' && c.type === 'expense')!;
+    assert.ok(foodCat, 'Food category should exist');
+
+    // 2. Reject empty name
+    const emptyRes = await store.renameCategory(foodCat.id, '   ');
+    assert.equal(emptyRes.success, false);
+    assert.match(emptyRes.error || '', /empty/i);
+
+    // 3. Reject duplicate name (Grocery already exists for expense)
+    const duplicateRes = await store.renameCategory(foodCat.id, 'Grocery');
+    assert.equal(duplicateRes.success, false);
+    assert.match(duplicateRes.error || '', /already exists/i);
+
+    // 4. Successfully rename 'Food' to 'Dining & Drinks'
+    const successRes = await store.renameCategory(foodCat.id, 'Dining & Drinks');
+    assert.equal(successRes.success, true);
+
+    const updatedCategories = useFinanceStore.getState().categories;
+    const renamedCat = updatedCategories.find(c => c.id === foodCat.id);
+    assert.equal(renamedCat?.name, 'Dining & Drinks');
+
+    // Transactions must update to the new category name
+    const updatedTxs = useFinanceStore.getState().transactions;
+    const tx = updatedTxs.find(t => t.accountId === cardAcc.id);
+    assert.equal(tx?.category, 'Dining & Drinks', 'Transaction category should be renamed to Dining & Drinks');
+
+    // Budget must migrate to the new category name
+    const updatedBudgets = useFinanceStore.getState().budgets;
+    assert.equal(updatedBudgets['Dining & Drinks'], 3000, 'Budget should be moved to Dining & Drinks');
+    assert.equal(updatedBudgets['Food'], undefined, 'Old Food budget key should be removed');
+
+    // 5. Verify persistence across DB re-fetch
+    await store.fetchData();
+    const persistedCategories = useFinanceStore.getState().categories;
+    assert.ok(persistedCategories.some(c => c.name === 'Dining & Drinks'));
+    const persistedTxs = useFinanceStore.getState().transactions;
+    assert.equal(persistedTxs.find(t => t.accountId === cardAcc.id)?.category, 'Dining & Drinks');
+  });
 });
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User, Smartphone, Info, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Palette, CircleDollarSign, Plus, Trash2, AlertOctagon, Save, ArrowLeft, Target, BookOpen, Wallet, BarChart3, AlertTriangle, Bell, Fingerprint, User, Smartphone, Info, ExternalLink, Edit2, Check, X } from 'lucide-react';
 import type { Category } from '../db/db';
 import { AppIconFull } from '../components/AppIcon';
 import { exportFile } from '../utils/nativeFileExport';
@@ -24,6 +24,7 @@ export const Settings: React.FC = () => {
     deleteGoal,
     categories,
     addCategory,
+    renameCategory,
     deleteCategory,
     theme,
     setTheme,
@@ -54,6 +55,8 @@ export const Settings: React.FC = () => {
   // Categories states
   const [catType, setCatType] = useState<Category['type']>('expense');
   const [newCatName, setNewCatName] = useState<string>('');
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editingCatName, setEditingCatName] = useState<string>('');
 
   // Security states
   const [secPin, setSecPin] = useState<string>('');
@@ -298,6 +301,32 @@ export const Settings: React.FC = () => {
   const handleDeleteCategory = async (catId: string, catName: string) => {
     await deleteCategory(catId);
     showToast(`Category "${catName}" removed`, "success");
+  };
+
+  const handleStartRename = (cat: Category) => {
+    setEditingCatId(cat.id);
+    setEditingCatName(cat.name);
+  };
+
+  const handleCancelRename = () => {
+    setEditingCatId(null);
+    setEditingCatName('');
+  };
+
+  const handleSaveRename = async (catId: string) => {
+    const trimmed = editingCatName.trim();
+    if (!trimmed) {
+      showToast("Category name cannot be empty", "error");
+      return;
+    }
+    const res = await renameCategory(catId, trimmed);
+    if (res.success) {
+      showToast("Category renamed successfully", "success");
+      setEditingCatId(null);
+      setEditingCatName('');
+    } else {
+      showToast(res.error || "Failed to rename category", "error");
+    }
   };
 
   // --- SECURITY ACTIONS ---
@@ -774,25 +803,86 @@ export const Settings: React.FC = () => {
                 </form>
 
                 {/* Categories list */}
-                <div id="settings-cat-list" className="divide-y divide-border-custom overflow-y-auto max-h-56 no-scrollbar pt-2" aria-label="Available categories">
+                <div id="settings-cat-list" className="divide-y divide-border-custom overflow-y-auto max-h-64 no-scrollbar pt-2" aria-label="Available categories">
                   {categories
                     .filter((c) => c.type === catType)
                     .map((cat) => (
                       <article key={cat.id} className="flex justify-between items-center py-2 min-h-[44px] text-xs">
-                        <span className="text-text-secondary font-medium">{cat.name}</span>
-                        {cat.isCustom ? (
-                          <button
-                            id={`settings-cat-delete-${cat.name}`}
-                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                            aria-label={`Delete custom category ${cat.name}`}
-                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-white/5 text-text-subtle hover:text-accent-red cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        {editingCatId === cat.id ? (
+                          <div className="flex items-center space-x-2 w-full py-1">
+                            <label htmlFor={`settings-cat-rename-input-${cat.id}`} className="sr-only">Edit category name</label>
+                            <input
+                              type="text"
+                              id={`settings-cat-rename-input-${cat.id}`}
+                              value={editingCatName}
+                              onChange={(e) => setEditingCatName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSaveRename(cat.id);
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  handleCancelRename();
+                                }
+                              }}
+                              autoFocus
+                              className="flex-1 min-h-[36px] px-2.5 py-1 text-xs rounded-lg border border-accent-green bg-bg-base text-text-primary focus:outline-none"
+                              placeholder="Category name..."
+                            />
+                            <button
+                              type="button"
+                              id={`settings-cat-save-rename-${cat.name}`}
+                              onClick={() => handleSaveRename(cat.id)}
+                              className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg bg-accent-green/20 text-accent-green hover:bg-accent-green/30 cursor-pointer"
+                              title="Save rename"
+                              aria-label={`Save rename for ${cat.name}`}
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              id={`settings-cat-cancel-rename-${cat.name}`}
+                              onClick={handleCancelRename}
+                              className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg bg-white/5 text-text-subtle hover:text-text-primary cursor-pointer"
+                              title="Cancel"
+                              aria-label="Cancel rename"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         ) : (
-                          <span className="text-[9px] font-bold text-text-subtle uppercase">
-                            Preset
-                          </span>
+                          <>
+                            <div className="flex items-center space-x-2 truncate pr-2">
+                              <span className="text-text-secondary font-medium truncate">{cat.name}</span>
+                              {!cat.isCustom && (
+                                <span className="text-[9px] font-bold text-text-subtle uppercase px-1.5 py-0.5 rounded bg-white/5 flex-shrink-0">
+                                  Preset
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-1 flex-shrink-0">
+                              <button
+                                id={`settings-cat-rename-${cat.name}`}
+                                onClick={() => handleStartRename(cat)}
+                                aria-label={`Rename category ${cat.name}`}
+                                title={`Rename ${cat.name}`}
+                                className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-white/5 text-text-subtle hover:text-accent-green cursor-pointer"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              {cat.isCustom ? (
+                                <button
+                                  id={`settings-cat-delete-${cat.name}`}
+                                  onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                                  aria-label={`Delete custom category ${cat.name}`}
+                                  title={`Delete ${cat.name}`}
+                                  className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-white/5 text-text-subtle hover:text-accent-red cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              ) : null}
+                            </div>
+                          </>
                         )}
                       </article>
                     ))}

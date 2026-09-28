@@ -96,6 +96,7 @@ interface FinanceState {
 
   // Category actions
   addCategory: (name: string, type: Category['type']) => Promise<void>;
+  renameCategory: (id: string, newName: string) => Promise<{ success: boolean; error?: string }>;
   deleteCategory: (id: string) => Promise<void>;
 
   // Settings & Security actions
@@ -425,6 +426,64 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     };
     await db.saveCategory(newCat);
     await get().fetchData();
+  },
+
+  renameCategory: async (id, newName) => {
+    const trimmed = newName.trim();
+    if (!trimmed) {
+      return { success: false, error: 'Category name cannot be empty' };
+    }
+
+    const categories = get().categories;
+    const cat = categories.find((c) => c.id === id);
+    if (!cat) {
+      return { success: false, error: 'Category not found' };
+    }
+
+    const oldName = cat.name;
+    if (oldName === trimmed) {
+      return { success: true };
+    }
+
+    // Check if category name already exists for this type (case-insensitive)
+    const duplicate = categories.some(
+      (c) => c.id !== id && c.type === cat.type && c.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (duplicate) {
+      return { success: false, error: `Category "${trimmed}" already exists for ${cat.type}` };
+    }
+
+    // 1. Update the category record in IndexedDB
+    const updatedCat: Category = {
+      ...cat,
+      name: trimmed,
+    };
+    await db.saveCategory(updatedCat);
+
+    // 2. Update all transactions referencing this category and type
+    const txsToUpdate = get().transactions.filter(
+      (tx) => tx.category === oldName && tx.type === cat.type
+    );
+    for (const tx of txsToUpdate) {
+      await db.saveTransaction({
+        ...tx,
+        category: trimmed,
+      });
+    }
+
+    // 3. Update budgets if this category had a budget configured
+    const currentBudgets = { ...get().budgets };
+    if (currentBudgets[oldName] !== undefined) {
+      const budgetVal = currentBudgets[oldName];
+      delete currentBudgets[oldName];
+      currentBudgets[trimmed] = budgetVal;
+      set({ budgets: currentBudgets });
+      localStorage.setItem('budgets', JSON.stringify(currentBudgets));
+    }
+
+    // 4. Refresh store from IndexedDB
+    await get().fetchData();
+    return { success: true };
   },
 
   deleteCategory: async (id) => {
