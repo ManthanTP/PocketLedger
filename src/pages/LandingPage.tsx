@@ -122,11 +122,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#features" className="hover:text-emerald-400 transition-colors">Features</a>
-            <a href="#preview" className="hover:text-emerald-400 transition-colors">Interactive Demo</a>
-            <a href="#specs" className="hover:text-emerald-400 transition-colors">APK Specs</a>
-            <a href="#faq" className="hover:text-emerald-400 transition-colors">FAQ</a>
+          <nav className="hidden md:flex items-center gap-3.5 lg:gap-6 xl:gap-8 text-xs lg:text-sm font-medium text-slate-300">
+            <a href="#preview" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Interactive Demo</a>
+            <a href="#features" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Features</a>
+            <a href="#demo" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Watch Product Demo</a>
+            <a href="#specs" className="hover:text-emerald-400 transition-colors whitespace-nowrap">APK Specs</a>
+            <a href="#faq" className="hover:text-emerald-400 transition-colors whitespace-nowrap">FAQ</a>
+            <a href="/download.html" className="hover:text-emerald-400 transition-colors whitespace-nowrap">Download Page</a>
           </nav>
 
           {/* Action Buttons */}
@@ -816,18 +818,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             </div>
 
             {/* Navigation Links */}
-            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-center md:flex md:items-center md:gap-8">
-              <a href="#features" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-center md:flex md:flex-wrap md:items-center md:justify-center md:gap-x-5 lg:gap-x-8 md:gap-y-2">
+              <a href="#preview" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
+                Interactive Demo
+              </a>
+              <a href="#features" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
                 Features
               </a>
-              <a href="#preview" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
-                Demo
+              <a href="#demo" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
+                Watch Product Demo
               </a>
-              <a href="#specs" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
-                Specs
+              <a href="#specs" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
+                APK Specs
               </a>
-              <a href="#faq" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium">
+              <a href="#faq" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
                 FAQ
+              </a>
+              <a href="/download.html" className="text-sm text-slate-400 hover:text-emerald-400 transition-colors font-medium whitespace-nowrap">
+                Download Page
               </a>
             </div>
 

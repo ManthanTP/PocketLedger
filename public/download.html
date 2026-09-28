@@ -128,6 +128,27 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 22px;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-green);
+    }
+    @media (min-width: 992px) {
+      .nav-links {
+        display: flex;
+      }
+    }
     .nav-actions {
       display: flex;
       align-items: center;
@@ -536,6 +557,15 @@
         <span class="logo-badge">PRO v1.0.0</span>
       </a>
 
+      <nav class="nav-links">
+        <a href="/#preview">Interactive Demo</a>
+        <a href="/#features">Features</a>
+        <a href="/#demo">Watch Product Demo</a>
+        <a href="/#specs">APK Specs</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/download.html" class="active">Download Page</a>
+      </nav>
+
       <div class="nav-actions">
         <a href="/#app" class="btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
@@ -790,10 +820,12 @@
   <footer>
     <div class="container">
       <div class="footer-links">
-        <a href="/PocketLedgerPRO.apk" download>Download APK</a>
-        <a href="/">Launch Web App</a>
-        <a href="/#reports">Reports & Analytics</a>
-        <a href="/#accounts">Accounts</a>
+        <a href="/#preview">Interactive Demo</a>
+        <a href="/#features">Features</a>
+        <a href="/#demo">Watch Product Demo</a>
+        <a href="/#specs">APK Specs</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/download.html">Download Page</a>
       </div>
       <p>© <script>document.write(new Date().getFullYear())</script> Pocket Ledger Pro • Created by <a href="https://manthantp-portfolio.vercel.app" target="_blank" rel="noopener noreferrer" style="color: var(--accent-green); text-decoration: none; font-weight: 600; transition: opacity 0.2s;">Manthan Patel</a>. All rights reserved.</p>
       <p style="margin-top: 6px; font-size: 0.75rem; color: var(--text-subtle);">
