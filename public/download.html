@@ -418,6 +418,68 @@
       text-align: right;
     }
 
+    /* Demo Video Section */
+    .demo-box {
+      margin-bottom: 80px;
+      text-align: center;
+    }
+    .demo-player-card {
+      position: relative;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-custom);
+      border-radius: 28px;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      margin-top: 32px;
+    }
+    .demo-player-card video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .demo-overlay-btn {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s;
+    }
+    .demo-overlay-btn:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .demo-play-circle {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+      transition: transform 0.3s;
+    }
+    .demo-overlay-btn:hover .demo-play-circle {
+      transform: scale(1.1);
+    }
+    .demo-play-badge {
+      margin-top: 16px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: rgba(11, 18, 32, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+    }
+
     /* Footer */
     footer {
       border-top: 1px solid var(--border-custom);
@@ -621,6 +683,31 @@
       </div>
     </section>
 
+    <!-- Product Demo Video Section -->
+    <section class="demo-box" id="demo">
+      <div class="section-title">
+        <div class="hero-pill" style="margin: 0 auto 16px; width: fit-content;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Watch Product Demo</span>
+        </div>
+        <h2>See Pocket Ledger in Action</h2>
+        <p>Track transactions, understand your spending, and manage your money — all in one place.</p>
+      </div>
+
+      <div class="demo-player-card">
+        <video id="demo-video-player" poster="/pocket-ledger-demo-poster.jpg" preload="metadata" controls playsinline>
+          <source src="/pocket-ledger-demo.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <button type="button" class="demo-overlay-btn" id="demo-play-trigger" aria-label="Play Pocket Ledger Demo Video">
+          <div class="demo-play-circle">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#0B1220" style="margin-left: 4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <span class="demo-play-badge">Watch 20s Product Tour</span>
+        </button>
+      </div>
+    </section>
+
     <!-- 3-Step Installation Guide -->
     <section class="install-box">
       <div style="text-align: center;">
@@ -714,5 +801,21 @@
       </p>
     </div>
   </footer>
+  <script>
+    const demoVid = document.getElementById('demo-video-player');
+    const demoBtn = document.getElementById('demo-play-trigger');
+    if (demoVid && demoBtn) {
+      demoBtn.addEventListener('click', () => {
+        demoVid.play();
+        demoBtn.style.display = 'none';
+      });
+      demoVid.addEventListener('pause', () => {
+        if (demoVid.ended) demoBtn.style.display = 'flex';
+      });
+      demoVid.addEventListener('play', () => {
+        demoBtn.style.display = 'none';
+      });
+    }
+  </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Download,
   Shield,
@@ -16,7 +16,8 @@ import {
   BookOpen,
   Sliders,
   Share2,
-  Globe
+  Globe,
+  Play
 } from 'lucide-react';
 import { AppIconFull } from '../components/AppIcon';
 import { useScrollReveal, ScrollReveal } from '../hooks/useScrollReveal';
@@ -42,11 +43,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
   const previewContentRef = useScrollReveal<HTMLDivElement>({ animation: 'scale-in', duration: 800, delay: 150 });
   const calculatorRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800 });
   const featuresHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const demoHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
+  const demoPlayerRef = useScrollReveal<HTMLDivElement>({ animation: 'scale-in', duration: 800, delay: 150 });
   const specsHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
   const specsGridRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 150 });
   const sideloadRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 800, delay: 300 });
   const faqHeadingRef = useScrollReveal<HTMLDivElement>({ animation: 'fade-up', duration: 700 });
   const ctaRef = useScrollReveal<HTMLDivElement>({ animation: 'scale-in', duration: 900 });
+
+  const [isPlayingDemo, setIsPlayingDemo] = useState(false);
+  const demoVideoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayDemo = () => {
+    if (demoVideoRef.current) {
+      demoVideoRef.current.play();
+      setIsPlayingDemo(true);
+    }
+  };
 
   const calculatedSavings = Math.round(incomeSlider * (savingsRate / 100));
   const yearlyProjected = calculatedSavings * 12;
@@ -572,6 +585,88 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 </ScrollReveal>
               );
             })}
+          </div>
+        </section>
+
+        {/* DEMO VIDEO SECTION */}
+        <section id="demo" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div ref={demoHeadingRef} className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Watch Product Demo</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-white tracking-tight">
+              See Pocket Ledger in Action
+            </h2>
+            <p className="mt-4 text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              Track transactions, understand your spending, and manage your money — all in one place.
+            </p>
+          </div>
+
+          <div ref={demoPlayerRef} className="max-w-5xl mx-auto">
+            <div className="relative group rounded-2xl sm:rounded-3xl p-1 bg-gradient-to-b from-white/15 via-white/5 to-white/10 shadow-2xl shadow-black/80">
+              {/* Ambient Glowing Backdrop Halo */}
+              <div
+                className="absolute -inset-1 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-500/25 via-teal-500/15 to-violet-600/25 blur-2xl opacity-60 group-hover:opacity-90 transition-opacity duration-700 pointer-events-none"
+                aria-hidden="true"
+              />
+
+              {/* Video Player Container */}
+              <div className="relative rounded-[14px] sm:rounded-[22px] overflow-hidden bg-[#0B1220] aspect-video">
+                <video
+                  ref={demoVideoRef}
+                  className="w-full h-full object-cover"
+                  poster="/pocket-ledger-demo-poster.jpg"
+                  preload="metadata"
+                  controls
+                  playsInline
+                  onPlay={() => setIsPlayingDemo(true)}
+                  onPause={() => setIsPlayingDemo(false)}
+                  onEnded={() => setIsPlayingDemo(false)}
+                >
+                  <source src="/pocket-ledger-demo.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+
+                {/* Big Custom Play Overlay (visible prior to playback) */}
+                {!isPlayingDemo && (
+                  <button
+                    type="button"
+                    onClick={handlePlayDemo}
+                    aria-label="Play Pocket Ledger Demo Video"
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 hover:bg-black/30 transition-all duration-300 group/btn cursor-pointer"
+                  >
+                    <div className="relative">
+                      <div className="absolute -inset-4 rounded-full bg-emerald-500/35 blur-lg animate-pulse pointer-events-none" />
+                      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center shadow-2xl shadow-emerald-500/50 group-hover/btn:scale-110 transition-all duration-300">
+                        <Play className="w-8 h-8 sm:w-10 sm:h-10 ml-1 fill-slate-950 text-slate-950" />
+                      </div>
+                    </div>
+                    <span className="mt-5 px-4 py-2 rounded-full bg-slate-900/90 backdrop-blur-md border border-white/10 text-white text-xs sm:text-sm font-semibold tracking-wide shadow-xl group-hover/btn:border-emerald-500/40 transition-colors">
+                      Watch 20s Launch Demo
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Key Highlights under Video */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>100% Offline &amp; Private</span>
+              </div>
+              <span className="hidden sm:inline text-slate-600">•</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Instant &lt;3s Expense Logging</span>
+              </div>
+              <span className="hidden sm:inline text-slate-600">•</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Multi-Account Cashflow Analytics</span>
+              </div>
+            </div>
           </div>
         </section>
 
