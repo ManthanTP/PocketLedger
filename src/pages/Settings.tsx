@@ -1786,7 +1786,6 @@ export const Settings: React.FC = () => {
                     {[
                       { label: 'Version', value: '1.0.0 PRO' },
                       { label: 'Platform', value: 'Web & Android (Capacitor)' },
-                      { label: 'APK Package Size', value: '38.79 MB (Universal)' },
                       { label: 'Storage', value: '100% On-Device (IndexedDB)' },
                       { label: 'Internet', value: 'Not Required' },
                     ].map(item => (

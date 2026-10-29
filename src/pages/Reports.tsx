@@ -660,7 +660,8 @@ export const Reports: React.FC = () => {
             {sortedCategories.length > 0 ? (
               <div className="glass-panel rounded-3xl p-5 shadow-xs space-y-4.5">
                 {sortedCategories.map((cat, index) => {
-                  const limit = budgets[cat.name] || 0;
+                  const monthlyLimit = budgets[cat.name] || 0;
+                  const limit = period === 'year' ? monthlyLimit * 12 : monthlyLimit;
                   const isBudgetSet = limit > 0;
                   const pct = isBudgetSet ? Math.min(100, (cat.amount / limit) * 100) : (cat.amount / maxCategoryAmount) * 100;
                   const isOverBudget = isBudgetSet && cat.amount > limit;

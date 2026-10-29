@@ -606,7 +606,10 @@ export const Dashboard: React.FC = () => {
               Active Budgets
             </span>
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => {
+                setActiveTab('settings');
+                setSettingsActivePanel('budgets');
+              }}
               className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
             >
               Configure
@@ -649,7 +652,10 @@ export const Dashboard: React.FC = () => {
                 No monthly spending limits set.
               </p>
               <button
-                onClick={() => setActiveTab('settings')}
+                onClick={() => {
+                  setActiveTab('settings');
+                  setSettingsActivePanel('budgets');
+                }}
                 className="px-2.5 py-0.5 bg-white/5 hover:bg-white/10 text-text-primary font-bold text-[8px] rounded-lg cursor-pointer transition-colors duration-150"
               >
                 Set Budgets
@@ -666,7 +672,10 @@ export const Dashboard: React.FC = () => {
               <span>Savings Targets</span>
             </span>
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => {
+                setActiveTab('settings');
+                setSettingsActivePanel('goals');
+              }}
               className="text-[10px] font-bold text-accent-green-light hover:underline cursor-pointer"
             >
               Configure
