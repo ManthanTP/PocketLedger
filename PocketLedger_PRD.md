@@ -7,7 +7,7 @@
 **Date:** September 2026  
 **Status:** Shipped & Production-Verified  
 **Repository:** `ManthanTP/PocketLedger`  
-**Distribution:** Android Native APK (`PocketLedgerPRO.apk` — 38.79 MB) & Standalone Web App  
+**Distribution:** Android Native APK (`PocketLedgerPRO.apk` — 46.38 MB) & Standalone Web App  
 
 ---
 
@@ -37,7 +37,7 @@ The application unifies physical cash, digital UPI wallets (PhonePe, Google Pay,
 | **Transaction Add Time** | < 8.0 seconds | ≤ 4.2 seconds (3 taps from dashboard) |
 | **Network Footprint** | 0 KB | 0 KB (App operates flawlessly in Airplane mode) |
 | **Test Suite Stability** | 100% Pass | 16/16 automated test suites passing |
-| **APK Footprint** | < 45 MB | 38.79 MB self-contained native binary |
+| **APK Footprint** | < 50 MB | 46.38 MB self-contained native binary |
 
 ---
 

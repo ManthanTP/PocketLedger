@@ -191,7 +191,7 @@ function App() {
               download="PocketLedgerPRO.apk"
               className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition-colors"
             >
-              Get Android APK (38.79 MB)
+              Get Android APK (46.38 MB)
             </a>
             <button
               onClick={() => {

@@ -737,7 +737,7 @@ export const Settings: React.FC = () => {
                     <span className="text-xs font-bold text-text-primary block font-display">Download Android APK</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent-green/15 text-accent-green font-bold">v1.0 PRO</span>
                   </div>
-                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (38.79 MB)</span>
+                  <span className="text-[10px] text-text-subtle block mt-0.5 font-body">Official offline Android app (46.38 MB)</span>
                 </div>
               </div>
               <ExternalLink className="w-4 h-4 text-text-subtle hover:text-accent-green" />

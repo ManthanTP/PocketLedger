@@ -100,17 +100,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1220]/85 border-b border-white/[0.08] transition-all duration-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
           {/* Brand Logo & Name */}
-          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
             <div className="relative flex-shrink-0">
-              <AppIconFull size={38} className="rounded-xl shadow-lg shadow-emerald-500/20" />
-              <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
+              <AppIconFull size={34} className="rounded-xl shadow-lg shadow-emerald-500/20 sm:w-[38px] sm:h-[38px]" />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-display font-extrabold text-base sm:text-lg text-white tracking-tight whitespace-nowrap">
+                <span className="font-display font-extrabold text-sm sm:text-base md:text-lg text-white tracking-tight whitespace-nowrap">
                   Pocket Ledger
                 </span>
                 <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
@@ -135,7 +135,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             <button
               onClick={onLaunchApp}
               title="Launch Web App"
-              className="p-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
+              className="p-2 sm:px-3 sm:py-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap"
             >
               <Globe className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <span className="hidden sm:inline">Web App</span>
@@ -144,11 +144,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             <a
               href="/PocketLedgerPRO.apk"
               download="PocketLedgerPRO.apk"
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all duration-200 flex items-center gap-1.5 sm:gap-2 hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
             >
               <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5] flex-shrink-0" />
               <span>APK</span>
-              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono hidden sm:inline">38.79 MB</span>
+              <span className="text-[10px] sm:text-[11px] bg-slate-950/20 px-1.5 py-0.5 rounded font-mono hidden md:inline">46.38 MB</span>
             </a>
           </div>
         </div>
@@ -186,7 +186,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
             >
               <Download className="w-5 h-5 stroke-[2.5] group-hover:translate-y-0.5 transition-transform" />
               <span>Download Android APK</span>
-              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">38.79 MB</span>
+              <span className="text-xs px-2 py-0.5 rounded-md bg-slate-950/20 font-mono font-bold">46.38 MB</span>
             </a>
 
             <button
@@ -205,7 +205,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               v1.0.0 PRO (Release)
             </span>
             <span className="hidden sm:inline">•</span>
-            <span>Size: <strong className="text-slate-200 font-semibold">38.79 MB</strong></span>
+            <span>Size: <strong className="text-slate-200 font-semibold">46.38 MB</strong></span>
             <span className="hidden sm:inline">•</span>
             <span>Android 8.0+ & Web</span>
             <span className="hidden sm:inline">•</span>
@@ -686,7 +686,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               </div>
               <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-xs text-slate-400">Build Size</div>
-                <div className="text-base font-bold text-emerald-400 mt-1 font-mono">38.79 MB</div>
+                <div className="text-base font-bold text-emerald-400 mt-1 font-mono">46.38 MB</div>
               </div>
               <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                 <div className="text-xs text-slate-400">Release Version</div>
@@ -713,7 +713,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 <div className="flex gap-4">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0">1</div>
                   <div className="text-xs text-slate-300 leading-relaxed">
-                    Click <strong>Download Android APK (38.79 MB)</strong> to download the APK directly to your phone.
+                    Click <strong>Download Android APK (46.38 MB)</strong> to download the APK directly to your phone.
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -782,7 +782,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-base shadow-xl shadow-emerald-500/25 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Download className="w-5 h-5 stroke-[2.5]" />
-                <span>Download APK (38.79 MB)</span>
+                <span>Download APK (46.38 MB)</span>
               </a>
 
               <button
@@ -855,7 +855,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp }) => {
               >
                 <Download className="w-4 h-4 stroke-[2.5]" />
                 <span>APK</span>
-                <span className="text-[10px] font-mono opacity-70">38.79 MB</span>
+                <span className="text-[10px] font-mono opacity-70">46.38 MB</span>
               </a>
             </div>
           </div>
