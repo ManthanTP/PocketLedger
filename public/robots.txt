@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pocket-ledger-pro.vercel.app/sitemap.xml
+
